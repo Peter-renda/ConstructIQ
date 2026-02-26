@@ -7,7 +7,9 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Textarea } from '../../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Pencil, Save, X, Lock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog';
+import { Pencil, Save, X, Lock, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STAGES = ['bidding', 'pre-construction', 'course of construction', 'post-construction', 'warranty'];
@@ -57,7 +59,7 @@ function Field({ label, value }) {
 export function AdminPage() {
   const { projectId } = useParams();
   const { user, profile } = useAuth();
-  const { projects, updateProject, getProjectRole } = useData();
+  const { projects, updateProject, getProjectRole, specifications, addSpec, updateSpec, deleteSpec } = useData();
 
   const project = useMemo(() => projects.find(p => p.id === projectId), [projects, projectId]);
   const projectRole = getProjectRole(projectId, user?.id);
@@ -69,6 +71,12 @@ export function AdminPage() {
   const [general, setGeneral] = useState({});
   const [location, setLocation] = useState({});
   const [dates, setDates] = useState({});
+
+  const [showSpecDialog, setShowSpecDialog] = useState(false);
+  const [editSpec, setEditSpec] = useState(null);
+  const [specForm, setSpecForm] = useState({ number: '', title: '' });
+  const [confirmDeleteSpec, setConfirmDeleteSpec] = useState(null);
+  const projectSpecs = useMemo(() => specifications.filter(s => s.projectId === projectId).sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true })), [specifications, projectId]);
 
   useEffect(() => {
     if (!project) return;
@@ -162,6 +170,94 @@ export function AdminPage() {
           ))}
         </div>
       </SectionCard>
+
+      {/* Specifications */}
+      <div className="bg-white rounded-xl border">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b gap-2">
+          <h3 className="text-sm font-semibold">Specifications</h3>
+          {isAdmin ? (
+            <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs gap-1 text-muted-foreground"
+              onClick={() => { setEditSpec(null); setSpecForm({ number: '', title: '' }); setShowSpecDialog(true); }}>
+              <Plus className="h-3 w-3" /> Add
+            </Button>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground flex-shrink-0">
+              <Lock className="h-3 w-3" /> Admin only
+            </div>
+          )}
+        </div>
+        <div className="px-4 sm:px-6 py-5">
+          {projectSpecs.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">No specifications added yet.</p>
+          ) : (
+            <div className="divide-y rounded-md border overflow-hidden">
+              {projectSpecs.map(spec => (
+                <div key={spec.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-muted/30 group">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-mono font-semibold text-muted-foreground flex-shrink-0">{spec.number}</span>
+                    <span className="text-sm truncate">{spec.title}</span>
+                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="h-6 w-6"
+                        onClick={() => { setEditSpec(spec); setSpecForm({ number: spec.number, title: spec.title }); setShowSpecDialog(true); }}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive"
+                        onClick={() => setConfirmDeleteSpec(spec)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Spec Dialog */}
+      <Dialog open={showSpecDialog} onOpenChange={setShowSpecDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>{editSpec ? 'Edit Specification' : 'Add Specification'}</DialogTitle></DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div className="space-y-1.5">
+              <Label>Section Number</Label>
+              <Input value={specForm.number} onChange={e => setSpecForm(p => ({ ...p, number: e.target.value }))} placeholder="e.g. 03300" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Title</Label>
+              <Input value={specForm.title} onChange={e => setSpecForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Cast-In-Place Concrete" autoFocus />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSpecDialog(false)}>Cancel</Button>
+              <Button onClick={() => {
+                if (!specForm.number.trim() || !specForm.title.trim()) { toast.error('Number and title are required'); return; }
+                if (editSpec) {
+                  updateSpec(editSpec.id, specForm);
+                  toast.success('Specification updated');
+                } else {
+                  addSpec(projectId, specForm);
+                  toast.success('Specification added');
+                }
+                setShowSpecDialog(false);
+              }}>
+                {editSpec ? 'Save' : 'Add'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmDeleteSpec}
+        onOpenChange={v => !v && setConfirmDeleteSpec(null)}
+        title={`Delete "${confirmDeleteSpec?.number} — ${confirmDeleteSpec?.title}"?`}
+        description="This specification will be removed from the project."
+        onConfirm={() => { deleteSpec(confirmDeleteSpec.id); setConfirmDeleteSpec(null); toast.success('Deleted'); }}
+        confirmLabel="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }

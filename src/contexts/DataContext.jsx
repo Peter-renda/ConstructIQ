@@ -35,6 +35,7 @@ export function DataProvider({ children }) {
   const [tasks, setTasks] = useLocalState('tasks');
   const [rfis, setRfis] = useLocalState('rfis');
   const [submittals, setSubmittals] = useLocalState('submittals');
+  const [specifications, setSpecifications] = useLocalState('specifications');
   const [activityFeed, setActivityFeed] = useLocalState('activityFeed');
 
   function addActivity(projectId, type, action, details, userId) {
@@ -79,6 +80,7 @@ export function DataProvider({ children }) {
     setRfis(prev => prev.filter(r => r.projectId !== id));
     setSubmittals(prev => prev.filter(s => s.projectId !== id));
     setActivityFeed(prev => prev.filter(a => a.projectId !== id));
+    setSpecifications(prev => prev.filter(s => s.projectId !== id));
   }
 
   // ─── Project Members ────────────────────────────────
@@ -264,6 +266,21 @@ export function DataProvider({ children }) {
     setRfis(prev => prev.filter(r => r.id !== id));
   }
 
+  // ─── Specifications ─────────────────────────────────
+  function addSpec(projectId, data) {
+    const spec = { id: crypto.randomUUID(), projectId, ...data, createdAt: new Date().toISOString() };
+    setSpecifications(prev => [...prev, spec]);
+    return spec;
+  }
+
+  function updateSpec(id, data) {
+    setSpecifications(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+  }
+
+  function deleteSpec(id) {
+    setSpecifications(prev => prev.filter(s => s.id !== id));
+  }
+
   // ─── Submittals ────────────────────────────────────
   function addSubmittal(projectId, data, userId) {
     const projectSubs = submittals.filter(s => s.projectId === projectId);
@@ -305,6 +322,7 @@ export function DataProvider({ children }) {
       addTask, updateTask, deleteTask,
       addRfi, updateRfi, addRfiResponse, deleteRfi,
       addSubmittal, updateSubmittal, deleteSubmittal,
+      specifications, addSpec, updateSpec, deleteSpec,
       addActivity,
     }}>
       {children}
