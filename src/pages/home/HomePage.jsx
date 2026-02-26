@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, formatDistanceToNow } from 'date-fns';
+import { WeatherWidget } from '../../components/shared/WeatherWidget';
 
 const STAGES = ['bidding', 'pre-construction', 'course of construction', 'post-construction', 'warranty'];
 
@@ -330,6 +331,9 @@ export function HomePage() {
             ))}
           </div>
         )}
+
+        {/* Weather */}
+        <WeatherWidget />
 
         {/* Activity Feed */}
         <div className="bg-white rounded-xl border">
