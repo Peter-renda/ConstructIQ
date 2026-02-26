@@ -12,7 +12,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
-import { UserPlus, Building, Users, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { UserPlus, Building, Users, MoreVertical, Pencil, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const USER_PERMISSIONS = ['architect/engineer', 'owner/client', 'subcontractor', 'company employee'];
