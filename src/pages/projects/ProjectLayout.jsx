@@ -127,10 +127,10 @@ export function ProjectLayout() {
                   <li key={item.path}>
                     <button
                       onClick={() => go(item.path)}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors text-left ${
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-all duration-150 text-left ${
                         isActive
-                          ? 'bg-primary/10 text-primary font-medium'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                          : 'text-muted-foreground hover:bg-white/80 hover:text-foreground hover:shadow-sm'
                       }`}
                     >
                       <item.icon className={`h-3.5 w-3.5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
@@ -147,7 +147,7 @@ export function ProjectLayout() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-52px)] relative overflow-hidden">
+    <div className="flex h-[calc(100vh-56px)] relative overflow-hidden">
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
@@ -160,10 +160,10 @@ export function ProjectLayout() {
       {/* Sidebar — fixed overlay on mobile, static on desktop */}
       <aside
         className={`
-          fixed md:static top-[52px] left-0 z-40
-          h-[calc(100vh-52px)] md:h-full
+          fixed md:static top-[56px] left-0 z-40
+          h-[calc(100vh-56px)] md:h-full
           w-64 md:w-56 flex-shrink-0
-          border-r bg-white flex flex-col
+          border-r bg-slate-50/40 flex flex-col
           transition-transform duration-200 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
@@ -174,7 +174,7 @@ export function ProjectLayout() {
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-slate-50/50 min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 z-20 bg-white border-b px-4 py-2.5 flex items-center gap-3">
+        <div className="md:hidden sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b px-4 py-2.5 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors -ml-1"

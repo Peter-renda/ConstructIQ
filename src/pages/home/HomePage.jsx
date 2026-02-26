@@ -127,14 +127,14 @@ function StatCard({ label, value, icon: Icon, iconColor, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`bg-white rounded-xl border p-5 text-left transition-shadow hover:shadow-md w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`bg-white rounded-xl border p-5 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">{label}</p>
           <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
         </div>
-        <div className={`p-2 rounded-lg ${iconColor}`}>
+        <div className={`p-2.5 rounded-xl ${iconColor}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
@@ -148,7 +148,7 @@ function ProjectCard({ project, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-xl border p-5 text-left hover:shadow-md transition-shadow group w-full"
+      className="bg-white rounded-xl border p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group w-full"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -249,7 +249,7 @@ export function HomePage() {
               {userProjects.length} project{userProjects.length !== 1 ? 's' : ''} in your portfolio
             </p>
           </div>
-          <Button size="sm" onClick={() => setShowNewProject(true)} className="gap-1.5">
+          <Button size="sm" onClick={() => setShowNewProject(true)}>
             <Plus className="h-4 w-4" /> New Project
           </Button>
         </div>
@@ -288,10 +288,10 @@ export function HomePage() {
             <button
               key={stage}
               onClick={() => setStageFilter(stage)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 capitalize select-none ${
                 stageFilter === stage
                   ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border text-muted-foreground hover:text-foreground hover:border-gray-300'
+                  : 'bg-white border text-muted-foreground hover:text-foreground hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
               {stage === 'all' ? 'All Stages' : stage}
@@ -336,9 +336,9 @@ export function HomePage() {
         <WeatherWidget />
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-xl border">
+        <div className="bg-white rounded-xl border overflow-hidden">
           {/* Feed header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center justify-between px-5 py-4 border-b bg-slate-50/50">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold">Activity Feed</h2>
@@ -349,10 +349,10 @@ export function HomePage() {
                 <button
                   key={p.id}
                   onClick={() => toggleActivityFilter(p.id)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-all duration-150 select-none ${
                     activityFilter.includes(p.id)
                       ? 'bg-primary text-white border-primary'
-                      : 'text-muted-foreground border-border hover:border-primary/50'
+                      : 'text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
                   }`}
                 >
                   {p.name}

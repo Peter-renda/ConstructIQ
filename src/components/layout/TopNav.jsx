@@ -29,13 +29,13 @@ export function TopNav() {
     : user?.email?.[0]?.toUpperCase() ?? '?';
 
   return (
-    <header className="h-[52px] border-b bg-white flex items-center px-4 sm:px-5 gap-2 sm:gap-3 sticky top-0 z-40">
+    <header className="h-14 border-b border-border/60 bg-white/90 backdrop-blur-md flex items-center px-4 sm:px-5 gap-2 sm:gap-3 sticky top-0 z-40 shadow-[0_1px_3px_0_rgb(0,0,0,0.06)]">
       {/* Logo */}
       <button
         onClick={() => navigate('/home')}
-        className="flex items-center gap-2 font-semibold text-primary text-base hover:opacity-75 transition-opacity flex-shrink-0"
+        className="flex items-center gap-2 font-semibold text-primary text-base hover:opacity-80 transition-all duration-150 flex-shrink-0"
       >
-        <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+        <div className="w-7 h-7 bg-gradient-to-br from-primary to-blue-700 rounded-lg flex items-center justify-center shadow-sm">
           <Building2 className="h-4 w-4 text-white" />
         </div>
         <span className="tracking-tight hidden xs:inline sm:inline">ConstructIQ</span>
@@ -60,7 +60,7 @@ export function TopNav() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 rounded-full">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold hover:opacity-80 transition-opacity">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center text-white text-xs font-semibold hover:opacity-90 transition-all duration-150 shadow-sm">
               {initials}
             </div>
           </button>

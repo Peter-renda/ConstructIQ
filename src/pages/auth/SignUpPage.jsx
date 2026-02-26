@@ -32,30 +32,34 @@ export function SignUpPage() {
   return (
     <div className="min-h-screen flex bg-slate-50">
       {/* Left panel */}
-      <div className="hidden lg:flex w-1/2 bg-primary flex-col justify-between p-12">
-        <div className="flex items-center gap-2.5 text-white">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <Building2 className="h-4.5 w-4.5 text-white" />
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary via-blue-600 to-blue-800 flex-col justify-between p-12 relative overflow-hidden">
+        {/* Subtle background texture */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="relative flex items-center gap-2.5 text-white">
+          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <Building2 className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-semibold">ConstructIQ</span>
+          <span className="text-lg font-semibold tracking-tight">ConstructIQ</span>
         </div>
-        <div>
+        <div className="relative">
           <h2 className="text-3xl font-bold text-white mb-3 leading-snug">
             Get your projects<br />under control.
           </h2>
-          <p className="text-primary-foreground/70 text-sm leading-relaxed max-w-sm">
+          <p className="text-white/65 text-sm leading-relaxed max-w-sm">
             Join thousands of construction professionals who manage their projects smarter with ConstructIQ.
           </p>
         </div>
-        <p className="text-primary-foreground/40 text-xs">© {new Date().getFullYear()} ConstructIQ</p>
+        <p className="relative text-white/35 text-xs">© {new Date().getFullYear()} ConstructIQ</p>
       </div>
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 text-primary mb-8">
-            <Building2 className="h-6 w-6" />
-            <span className="text-xl font-bold">ConstructIQ</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-700 rounded-lg flex items-center justify-center shadow-sm">
+              <Building2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">ConstructIQ</span>
           </div>
 
           <h1 className="text-2xl font-bold text-foreground mb-1">Create an account</h1>
@@ -63,7 +67,7 @@ export function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="text-sm text-destructive bg-destructive/8 border border-destructive/20 rounded-lg px-3.5 py-2.5">
+              <div className="text-sm text-destructive bg-destructive/8 border border-destructive/20 rounded-xl px-3.5 py-2.5">
                 {error}
               </div>
             )}

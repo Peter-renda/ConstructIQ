@@ -23,17 +23,17 @@ function QuickStat({ label, count, total, icon: Icon, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-xl border p-5 text-left hover:shadow-md transition-shadow group w-full"
+      className="bg-white rounded-xl border p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group w-full"
     >
       <div className="flex items-start justify-between">
-        <div className={`p-2 rounded-lg ${color}`}>
+        <div className={`p-2.5 rounded-xl ${color}`}>
           <Icon className="h-4 w-4" />
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
       <p className="text-2xl font-bold mt-3 tracking-tight">{count}</p>
-      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-      {total > 0 && <p className="text-xs text-muted-foreground">{total} total</p>}
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mt-0.5">{label}</p>
+      {total > 0 && <p className="text-xs text-muted-foreground mt-0.5">{total} total</p>}
     </button>
   );
 }
@@ -112,8 +112,8 @@ export function ProjectHomePage() {
       </div>
 
       {/* Activity */}
-      <div className="bg-white rounded-xl border">
-        <div className="flex items-center gap-2 px-5 py-4 border-b">
+      <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-4 border-b bg-slate-50/50">
           <Activity className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold">Recent Activity</h2>
         </div>
