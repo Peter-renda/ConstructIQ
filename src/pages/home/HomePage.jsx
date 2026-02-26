@@ -123,15 +123,16 @@ function NewProjectDialog({ open, onOpenChange, onCreated }) {
 }
 
 // ─── Stat Card ────────────────────────────────────
-function StatCard({ label, value, icon: Icon, iconColor, onClick }) {
+function StatCard({ label, value, icon: Icon, iconColor, accentBar, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`bg-white rounded-xl border p-5 text-left transition-shadow hover:shadow-md w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`bg-white rounded-lg overflow-hidden text-left transition-all hover:shadow-md shadow-sm border border-border/50 w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
-      <div className="flex items-start justify-between">
+      {accentBar && <div className={`h-[3px] w-full ${accentBar}`} />}
+      <div className="flex items-start justify-between p-5">
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+          <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">{label}</p>
           <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
         </div>
         <div className={`p-2 rounded-lg ${iconColor}`}>
@@ -148,7 +149,7 @@ function ProjectCard({ project, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-xl border p-5 text-left hover:shadow-md transition-shadow group w-full"
+      className="bg-white rounded-lg border border-border/50 shadow-sm p-5 text-left hover:shadow-md transition-all group w-full"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -261,24 +262,28 @@ export function HomePage() {
             value={userProjects.length}
             icon={FolderOpen}
             iconColor="bg-blue-50 text-blue-600"
+            accentBar="bg-blue-500"
           />
           <StatCard
             label="Portfolio Value"
             value={fmtValue(portfolioValue)}
             icon={BarChart3}
             iconColor="bg-emerald-50 text-emerald-600"
+            accentBar="bg-emerald-500"
           />
           <StatCard
             label="Open RFIs"
             value={openRfis}
             icon={FileText}
             iconColor="bg-amber-50 text-amber-600"
+            accentBar="bg-amber-500"
           />
           <StatCard
             label="Open Submittals"
             value={openSubmittals}
             icon={AlertCircle}
             iconColor="bg-violet-50 text-violet-600"
+            accentBar="bg-violet-500"
           />
         </div>
 
@@ -336,7 +341,7 @@ export function HomePage() {
         <WeatherWidget />
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-xl border">
+        <div className="bg-white rounded-lg border border-border/50 shadow-sm">
           {/* Feed header */}
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <div className="flex items-center gap-2">
