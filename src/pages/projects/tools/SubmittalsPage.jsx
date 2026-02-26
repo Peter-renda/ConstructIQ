@@ -89,10 +89,10 @@ function SubmittalForm({ open, onOpenChange, onSubmit, initialData, users, compa
             </div>
             <div className="space-y-1.5">
               <Label>Assignee</Label>
-              <Select value={form.assignee} onValueChange={v => set('assignee', v)}>
+              <Select value={form.assignee || '__none__'} onValueChange={v => set('assignee', v === '__none__' ? '' : v)}>
                 <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {users.map(u => (
                     <SelectItem key={u.id} value={u.id}>
                       {[u.firstName, u.lastName].filter(Boolean).join(' ')}

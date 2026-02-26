@@ -68,6 +68,10 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  // Radix Select v2 does not allow value="". Use sentinel "__none__" ↔ ""
+  const selectVal = (v) => v || '__none__';
+  const fromSelect = (v) => v === '__none__' ? '' : v;
+
   const toggleList = (key, id) => {
     setForm(p => ({
       ...p,
@@ -194,10 +198,10 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>RFI Manager</Label>
-              <Select value={form.rfiManager} onValueChange={v => set('rfiManager', v)}>
+              <Select value={selectVal(form.rfiManager)} onValueChange={v => set('rfiManager', fromSelect(v))}>
                 <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {users.map(u => (
                     <SelectItem key={u.id} value={u.id}>
                       {[u.firstName, u.lastName].filter(Boolean).join(' ')}
@@ -208,10 +212,10 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
             </div>
             <div className="space-y-1.5">
               <Label>Received From</Label>
-              <Select value={form.receivedFrom} onValueChange={v => set('receivedFrom', v)}>
+              <Select value={selectVal(form.receivedFrom)} onValueChange={v => set('receivedFrom', fromSelect(v))}>
                 <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {users.map(u => (
                     <SelectItem key={u.id} value={u.id}>
                       {[u.firstName, u.lastName].filter(Boolean).join(' ')}
@@ -225,10 +229,10 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
           {/* Responsible Contractor */}
           <div className="space-y-1.5">
             <Label>Responsible Contractor</Label>
-            <Select value={form.responsibleContractor} onValueChange={v => set('responsibleContractor', v)}>
+            <Select value={selectVal(form.responsibleContractor)} onValueChange={v => set('responsibleContractor', fromSelect(v))}>
               <SelectTrigger><SelectValue placeholder="Select company" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="__none__">None</SelectItem>
                 {companies.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -241,10 +245,10 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
             <div className="space-y-1.5">
               <Label>Specification</Label>
               {specs.length > 0 ? (
-                <Select value={form.specification} onValueChange={v => set('specification', v)}>
+                <Select value={selectVal(form.specification)} onValueChange={v => set('specification', fromSelect(v))}>
                   <SelectTrigger><SelectValue placeholder="Select specification" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
                     {specs.map(s => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.number} — {s.title}
