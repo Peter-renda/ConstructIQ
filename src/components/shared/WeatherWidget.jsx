@@ -51,10 +51,26 @@ async function geocode(zip, city, state) {
   if (!results.length) throw new Error('Location not found. Try a different zip or city.');
 
   const { lat, lon, display_name } = results[0];
-  // Trim display_name to first two segments (city, state)
   const parts = display_name.split(', ');
   const locationName = parts.slice(0, 2).join(', ');
   return { latitude: parseFloat(lat), longitude: parseFloat(lon), locationName };
+}
+
+async function reverseGeocode(lat, lon) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+    { headers: { 'Accept-Language': 'en-US,en' } }
+  );
+  const data = await res.json();
+  const { city, town, village, state } = data.address ?? {};
+  const place = city || town || village || '';
+  return [place, state].filter(Boolean).join(', ') || 'Current Location';
+}
+
+async function geolocate() {
+  return new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+  );
 }
 
 async function fetchForecast(lat, lon) {
@@ -73,11 +89,13 @@ async function fetchForecast(lat, lon) {
 }
 
 export function WeatherWidget({ zip, city, state }) {
-  const hasLocation = !!(zip?.trim() || city?.trim());
+  const hasProjectLocation = !!(zip?.trim() || city?.trim());
+  // No project location = home page mode, try geolocation automatically
+  const useGeolocation = !hasProjectLocation;
 
   const [data, setData] = useState(null);
   const [locationName, setLocationName] = useState('');
-  const [loading, setLoading] = useState(hasLocation);
+  const [loading, setLoading] = useState(hasProjectLocation || useGeolocation);
   const [error, setError] = useState(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -86,10 +104,24 @@ export function WeatherWidget({ zip, city, state }) {
     setError(null);
     setData(null);
     try {
-      const useZip = overrideInput ?? zip;
-      const useCity = overrideInput ? undefined : city;
-      const useState_ = overrideInput ? undefined : state;
-      const { latitude, longitude, locationName: name } = await geocode(useZip, useCity, useState_);
+      let latitude, longitude, name;
+
+      if (overrideInput) {
+        // Manual search input — treat as zip if numeric, else city name
+        const isZip = /^\d+$/.test(overrideInput.trim());
+        const result = await geocode(isZip ? overrideInput : undefined, isZip ? undefined : overrideInput, undefined);
+        ({ latitude, longitude, locationName: name } = result);
+      } else if (hasProjectLocation) {
+        const result = await geocode(zip, city, state);
+        ({ latitude, longitude, locationName: name } = result);
+      } else {
+        // Home page — use browser geolocation
+        const pos = await geolocate();
+        latitude = pos.coords.latitude;
+        longitude = pos.coords.longitude;
+        name = await reverseGeocode(latitude, longitude);
+      }
+
       const forecast = await fetchForecast(latitude, longitude);
       setData(forecast);
       setLocationName(name);
@@ -98,10 +130,10 @@ export function WeatherWidget({ zip, city, state }) {
     } finally {
       setLoading(false);
     }
-  }, [zip, city, state]);
+  }, [zip, city, state, hasProjectLocation]);
 
   useEffect(() => {
-    if (hasLocation) load();
+    load();
   }, [zip, city, state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
@@ -123,16 +155,6 @@ export function WeatherWidget({ zip, city, state }) {
     </form>
   );
 
-  if (!hasLocation && !data) {
-    return (
-      <div className="bg-white rounded-xl border p-5">
-        <h2 className="text-sm font-semibold mb-3">7-Day Forecast</h2>
-        <p className="text-xs text-muted-foreground mb-2">No location set for this project. Enter a zip or city:</p>
-        <SearchForm />
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="bg-white rounded-xl border p-5">
@@ -150,7 +172,11 @@ export function WeatherWidget({ zip, city, state }) {
     return (
       <div className="bg-white rounded-xl border p-5 space-y-3">
         <h2 className="text-sm font-semibold">7-Day Forecast</h2>
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-destructive">
+          {useGeolocation
+            ? 'Location access was denied. Enter a zip or city below:'
+            : error}
+        </p>
         <SearchForm />
       </div>
     );
