@@ -18,9 +18,9 @@ import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 
 const STATUS_COLORS = {
-  open: 'bg-blue-100 text-blue-800',
-  closed: 'bg-green-100 text-green-800',
-  draft: 'bg-gray-100 text-gray-700',
+  open: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200/60',
+  closed: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/60',
+  draft: 'bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200/60',
 };
 
 const ALL_COLUMNS = [
@@ -281,7 +281,7 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
               {users.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-3">No users in directory</p>
               ) : users.map(u => (
-                <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/30">
+                <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
                     checked={form.assignees.includes(u.id)}
@@ -301,7 +301,7 @@ function RFIForm({ open, onOpenChange, onSubmit, initialData, users, companies, 
               {users.length === 0 ? (
                 <p className="text-sm text-muted-foreground p-3">No users in directory</p>
               ) : users.map(u => (
-                <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/30">
+                <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
                     checked={form.distributionList.includes(u.id)}
@@ -381,8 +381,8 @@ function RFIDetail({ rfi, onClose, users, companies, specs, currentUserId }) {
 
       {rfi.question && (
         <div>
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-2">Question</h3>
-          <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap">{rfi.question}</div>
+          <h3 className="font-semibold text-sm text-gray-400 uppercase tracking-wider mb-2">Question</h3>
+          <div className="bg-gray-50 rounded-lg p-4 text-sm whitespace-pre-wrap">{rfi.question}</div>
         </div>
       )}
 
@@ -407,13 +407,13 @@ function RFIDetail({ rfi, onClose, users, companies, specs, currentUserId }) {
 
       {/* Responses */}
       <div>
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">Responses</h3>
+        <h3 className="font-semibold text-sm text-gray-400 uppercase tracking-wider mb-3">Responses</h3>
         {(rfi.responses || []).length === 0 ? (
           <p className="text-sm text-muted-foreground">No responses yet.</p>
         ) : (
           <div className="space-y-3">
             {rfi.responses.map(r => (
-              <div key={r.id} className="border rounded-lg p-4">
+              <div key={r.id} className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">{getUserName(r.authorId)}</span>
                   <span className="text-xs text-muted-foreground">
@@ -443,7 +443,7 @@ function RFIDetail({ rfi, onClose, users, companies, specs, currentUserId }) {
 
       {/* General Info */}
       <div>
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">General Information</h3>
+        <h3 className="font-semibold text-sm text-gray-400 uppercase tracking-wider mb-3">General Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           {[
             { label: 'Due Date', value: rfi.dueDate || '—' },
@@ -638,8 +638,10 @@ export function RFIsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
-          <FileQuestion className="h-10 w-10 mx-auto mb-3 opacity-30" />
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 mb-3">
+            <FileQuestion className="h-6 w-6 text-blue-500" />
+          </div>
           <p className="font-medium">{projectRfis.length === 0 ? 'No RFIs yet' : 'No RFIs match your filters'}</p>
           {projectRfis.length === 0 && (
             <Button variant="outline" className="mt-3" onClick={() => setShowForm(true)}>
@@ -648,24 +650,24 @@ export function RFIsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="border-b bg-muted/30">
+                <tr className="bg-gray-50 border-b border-gray-100">
                   {ALL_COLUMNS.filter(c => visibleColumns.includes(c.key)).map(col => (
-                    <th key={col.key} className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide whitespace-nowrap">
+                    <th key={col.key} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                       {col.label}
                     </th>
                   ))}
                   <th className="px-4 py-3 w-24" />
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {filtered.map(rfi => (
                   <tr
                     key={rfi.id}
-                    className="hover:bg-muted/20 group cursor-pointer"
+                    className="border-b border-gray-50 hover:bg-gray-50/60 group cursor-pointer transition-colors"
                     onClick={() => setViewRfi(rfi)}
                   >
                     {ALL_COLUMNS.filter(c => visibleColumns.includes(c.key)).map(col => (

@@ -13,17 +13,17 @@ const STAGE_STYLES = {
 };
 
 const ACTIVITY_TYPE_STYLES = {
-  rfi:       'bg-blue-50 text-blue-700',
-  submittal: 'bg-violet-50 text-violet-700',
-  task:      'bg-amber-50 text-amber-700',
-  project:   'bg-slate-100 text-slate-600',
+  rfi:       'bg-blue-50 text-blue-700 ring-1 ring-blue-200/60',
+  submittal: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200/60',
+  task:      'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60',
+  project:   'bg-gray-100 text-gray-600 ring-1 ring-gray-200/60',
 };
 
 function QuickStat({ label, count, total, icon: Icon, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-xl border p-5 text-left hover:shadow-md transition-shadow group w-full"
+      className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] p-5 text-left hover:shadow-md transition-shadow group w-full"
     >
       <div className="flex items-start justify-between">
         <div className={`p-2 rounded-lg ${color}`}>
@@ -112,8 +112,8 @@ export function ProjectHomePage() {
       </div>
 
       {/* Activity */}
-      <div className="bg-white rounded-xl border">
-        <div className="flex items-center gap-2 px-5 py-4 border-b">
+      <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04]">
+        <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
           <Activity className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold">Recent Activity</h2>
         </div>
@@ -122,10 +122,10 @@ export function ProjectHomePage() {
             No activity yet on this project.
           </p>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-gray-50">
             {projectActivity.map(a => (
               <div key={a.id} className="flex items-start gap-3 px-5 py-3.5">
-                <span className={`mt-0.5 flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide ${ACTIVITY_TYPE_STYLES[a.type] || 'bg-slate-100 text-slate-600'}`}>
+                <span className={`mt-0.5 flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${ACTIVITY_TYPE_STYLES[a.type] || 'bg-gray-100 text-gray-600 ring-1 ring-gray-200/60'}`}>
                   {a.type}
                 </span>
                 <div className="flex-1 min-w-0">

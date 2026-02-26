@@ -14,12 +14,12 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
 const STATUS_COLORS = {
-  open: 'bg-blue-100 text-blue-800',
-  closed: 'bg-green-100 text-green-800',
-  draft: 'bg-gray-100 text-gray-700',
-  approved: 'bg-emerald-100 text-emerald-800',
-  rejected: 'bg-red-100 text-red-800',
-  'revise and resubmit': 'bg-yellow-100 text-yellow-800',
+  open: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200/60',
+  closed: 'bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200/60',
+  draft: 'bg-gray-50 text-gray-500 ring-1 ring-inset ring-gray-200/60',
+  approved: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/60',
+  rejected: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200/60',
+  'revise and resubmit': 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/60',
 };
 
 function SubmittalForm({ open, onOpenChange, onSubmit, initialData, users, companies, nextNumber }) {
@@ -184,8 +184,10 @@ export function SubmittalsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
-          <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-50 mb-3">
+            <ClipboardList className="h-6 w-6 text-violet-500" />
+          </div>
           <p className="font-medium">{projectSubmittals.length === 0 ? 'No submittals yet' : 'No submittals match filters'}</p>
           {projectSubmittals.length === 0 && (
             <Button variant="outline" className="mt-3" onClick={() => setShowForm(true)}>
@@ -194,28 +196,28 @@ export function SubmittalsPage() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[480px]">
             <thead>
-              <tr className="border-b bg-muted/30">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide w-16">#</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden sm:table-cell">Type</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Assignee</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Due Date</th>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-16">#</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Type</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Assignee</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Due Date</th>
                 <th className="px-4 py-3 w-20" />
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {filtered.map(s => (
-                <tr key={s.id} className="hover:bg-slate-50 group transition-colors">
+                <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                   <td className="px-4 py-3 font-mono text-muted-foreground text-xs">{s.submittalNumber}</td>
                   <td className="px-4 py-3 font-medium">{s.title}</td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{s.type || '—'}</td>
                   <td className="px-4 py-3">
-                    <span className={`capitalize text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[s.status] || 'bg-muted text-muted-foreground'}`}>
+                    <span className={`capitalize text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[s.status] || 'bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200/60'}`}>
                       {s.status}
                     </span>
                   </td>

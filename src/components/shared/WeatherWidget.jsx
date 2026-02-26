@@ -157,7 +157,7 @@ export function WeatherWidget({ zip, city, state }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border p-5">
+      <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] p-5">
         <div className="h-4 w-36 bg-muted animate-pulse rounded mb-4" />
         <div className="grid grid-cols-7 gap-2">
           {Array.from({ length: 7 }).map((_, i) => (
@@ -170,7 +170,7 @@ export function WeatherWidget({ zip, city, state }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl border p-5 space-y-3">
+      <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] p-5 space-y-3">
         <h2 className="text-sm font-semibold">7-Day Forecast</h2>
         <p className="text-sm text-destructive">
           {useGeolocation
@@ -187,7 +187,7 @@ export function WeatherWidget({ zip, city, state }) {
   const { daily } = data;
 
   return (
-    <div className="bg-white rounded-xl border p-5">
+    <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] p-5">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold">7-Day Forecast</h2>
         <div className="flex items-center gap-3">
@@ -212,13 +212,13 @@ export function WeatherWidget({ zip, city, state }) {
             <div
               key={dateStr}
               className={`flex flex-col items-center gap-1.5 px-1 py-3 rounded-lg text-center transition-colors ${
-                isToday ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-slate-50'
+                isToday ? 'bg-blue-50 ring-1 ring-blue-100' : 'hover:bg-gray-50'
               }`}
             >
-              <span className={`text-[11px] font-semibold ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span className={`text-[11px] font-semibold ${isToday ? 'text-blue-600' : 'text-muted-foreground'}`}>
                 {dayLabel}
               </span>
-              <Icon className={`h-5 w-5 flex-shrink-0 ${isToday ? 'text-primary' : 'text-slate-400'}`} />
+              <Icon className={`h-5 w-5 flex-shrink-0 ${isToday ? 'text-blue-500' : 'text-gray-400'}`} />
               <span className="text-[10px] text-muted-foreground leading-tight min-h-[2rem] flex items-center justify-center">
                 {label}
               </span>

@@ -107,7 +107,7 @@ function AddGroupDialog({ open, onOpenChange, onAdd, users }) {
               {users.length === 0
                 ? <p className="text-sm text-muted-foreground p-3">No users in directory yet</p>
                 : users.map(u => (
-                  <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/30">
+                  <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
                     <input type="checkbox" checked={members.includes(u.id)} onChange={() => toggle(u.id)} className="rounded" />
                     <span className="text-sm">{[u.firstName, u.lastName].filter(Boolean).join(' ')} — {u.email}</span>
                   </label>
@@ -147,8 +147,10 @@ export function DirectoryPage() {
   };
 
   const EmptyState = ({ icon: Icon, label, onAdd }) => (
-    <div className="text-center py-14 rounded-xl border-2 border-dashed text-muted-foreground">
-      <Icon className="h-8 w-8 mx-auto mb-2 opacity-25" />
+    <div className="text-center py-14 text-muted-foreground">
+      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+        <Icon className="h-6 w-6 text-gray-400" />
+      </div>
       <p className="text-sm">{label}</p>
       {onAdd && <Button variant="outline" size="sm" className="mt-3" onClick={onAdd}><Plus className="h-4 w-4 mr-1" /> Add one</Button>}
     </div>
@@ -193,21 +195,21 @@ export function DirectoryPage() {
           {filter(projectUsers, ['firstName', 'lastName', 'email', 'permission']).length === 0
             ? <EmptyState icon={UserPlus} label="No users added yet" onAdd={() => setShowAddUser(true)} />
             : (
-              <div className="bg-white rounded-xl border overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[400px]">
-                    <thead><tr className="border-b bg-muted/30">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden sm:table-cell">Permission</th>
+                    <thead><tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Permission</th>
                       <th className="px-4 py-3 w-10" />
                     </tr></thead>
-                    <tbody className="divide-y">
+                    <tbody>
                       {filter(projectUsers, ['firstName', 'lastName', 'email', 'permission']).map(u => (
-                        <tr key={u.id} className="hover:bg-slate-50 group transition-colors">
+                        <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                           <td className="px-4 py-3 font-medium">{[u.firstName, u.lastName].filter(Boolean).join(' ')}</td>
                           <td className="px-4 py-3 text-muted-foreground truncate max-w-[180px]">{u.email}</td>
-                          <td className="px-4 py-3 hidden sm:table-cell"><span className="capitalize text-xs bg-muted px-2 py-0.5 rounded-full">{u.permission}</span></td>
+                          <td className="px-4 py-3 hidden sm:table-cell"><span className="capitalize text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{u.permission}</span></td>
                           <td className="px-4 py-3 text-right"><ActionMenu onEdit={() => setEditUser(u)} onDelete={() => setConfirmDelete({ type: 'user', item: u })} /></td>
                         </tr>
                       ))}
@@ -222,19 +224,19 @@ export function DirectoryPage() {
           {filter(projectCompanies, ['name', 'type', 'contact', 'email']).length === 0
             ? <EmptyState icon={Building} label="No companies added yet" onAdd={() => setShowAddCompany(true)} />
             : (
-              <div className="bg-white rounded-xl border overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[400px]">
-                    <thead><tr className="border-b bg-muted/30">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Company</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden sm:table-cell">Type</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Contact</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Email</th>
+                    <thead><tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Company</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Type</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Contact</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
                       <th className="px-4 py-3 w-10" />
                     </tr></thead>
-                    <tbody className="divide-y">
+                    <tbody>
                       {filter(projectCompanies, ['name', 'type', 'contact', 'email']).map(c => (
-                        <tr key={c.id} className="hover:bg-slate-50 group transition-colors">
+                        <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                           <td className="px-4 py-3 font-medium">{c.name}</td>
                           <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{c.type || '—'}</td>
                           <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{c.contact || '—'}</td>
@@ -253,19 +255,19 @@ export function DirectoryPage() {
           {projectGroups.length === 0
             ? <EmptyState icon={Users} label="No distribution groups yet" onAdd={() => setShowAddGroup(true)} />
             : (
-              <div className="bg-white rounded-xl border overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead><tr className="border-b bg-muted/30">
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Group Name</th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Members</th>
+                    <thead><tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Group Name</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Members</th>
                       <th className="px-4 py-3 w-10" />
                     </tr></thead>
-                    <tbody className="divide-y">
+                    <tbody>
                       {projectGroups.map(g => {
                         const memberUsers = projectUsers.filter(u => g.members?.includes(u.id));
                         return (
-                          <tr key={g.id} className="hover:bg-slate-50 group transition-colors">
+                          <tr key={g.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                             <td className="px-4 py-3 font-medium">{g.name}</td>
                             <td className="px-4 py-3 text-muted-foreground text-xs truncate max-w-[200px]">
                               {memberUsers.length === 0 ? 'No members' : memberUsers.map(u => [u.firstName, u.lastName].filter(Boolean).join(' ')).join(', ')}

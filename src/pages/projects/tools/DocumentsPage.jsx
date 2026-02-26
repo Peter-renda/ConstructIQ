@@ -150,25 +150,27 @@ export function DocumentsPage() {
 
       {/* List */}
       {sorted.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border-2 border-dashed text-muted-foreground">
-          <Folder className="h-9 w-9 mx-auto mb-3 opacity-25" />
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-50 mb-3">
+            <Folder className="h-6 w-6 text-amber-400" />
+          </div>
           <p className="text-sm font-medium">This folder is empty</p>
           <p className="text-xs mt-1">Upload files or create a folder to get started</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/30">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Size</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Created</th>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Size</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Created</th>
                 <th className="px-5 py-3 w-28" />
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {sorted.map(doc => (
-                <tr key={doc.id} className="hover:bg-slate-50 group transition-colors">
+                <tr key={doc.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                   <td className="px-5 py-3">
                     <button
                       className="flex items-center gap-2.5 text-left hover:text-primary transition-colors"

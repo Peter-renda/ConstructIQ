@@ -18,9 +18,9 @@ const TASK_STATUSES = ['open', 'in progress', 'closed'];
 const TASK_CATEGORIES = ['administrative', 'closeout', 'contract', 'design', 'miscellaneous', 'construction'];
 
 const STATUS_COLORS = {
-  'open':        'bg-blue-50 text-blue-700',
-  'in progress': 'bg-amber-50 text-amber-700',
-  'closed':      'bg-emerald-50 text-emerald-700',
+  'open':        'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200/60',
+  'in progress': 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200/60',
+  'closed':      'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200/60',
 };
 
 function TaskForm({ open, onOpenChange, onSubmit, initialData, users, nextNumber }) {
@@ -89,7 +89,7 @@ function TaskForm({ open, onOpenChange, onSubmit, initialData, users, nextNumber
               {users.length === 0
                 ? <p className="text-muted-foreground p-3 text-sm">No users in directory</p>
                 : users.map(u => (
-                  <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/30">
+                  <label key={u.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
                     <input type="checkbox" checked={form.distributionList.includes(u.id)} onChange={() => toggleDist(u.id)} className="rounded" />
                     <span>{[u.firstName, u.lastName].filter(Boolean).join(' ')} — {u.email}</span>
                   </label>
@@ -192,38 +192,40 @@ export function TasksPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border-2 border-dashed text-muted-foreground">
-          <CheckSquare className="h-9 w-9 mx-auto mb-3 opacity-25" />
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 mb-3">
+            <CheckSquare className="h-6 w-6 text-blue-500" />
+          </div>
           <p className="text-sm font-medium">{projectTasks.length === 0 ? 'No tasks yet' : 'No tasks match your filters'}</p>
           {projectTasks.length === 0 && <Button variant="outline" size="sm" className="mt-3" onClick={() => setShowForm(true)}><Plus className="h-4 w-4 mr-1" /> Create first task</Button>}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[500px]">
               <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide w-12">#</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden sm:table-cell">Category</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Created</th>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">#</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Title</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Category</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Created</th>
                   <th className="px-4 py-3 w-20" />
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {filtered.map(t => (
-                  <tr key={t.id} className="hover:bg-slate-50 group transition-colors">
+                  <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/60 group transition-colors">
                     <td className="px-4 py-3 font-mono text-muted-foreground text-xs">{t.taskNumber}</td>
                     <td className="px-4 py-3">
                       <p className="font-medium">{t.title}</p>
                       {t.description && <p className="text-xs text-muted-foreground truncate max-w-[200px] mt-0.5">{t.description}</p>}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className="capitalize text-xs bg-muted px-2 py-0.5 rounded-full">{t.category}</span>
+                      <span className="capitalize text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{t.category}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`capitalize text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[t.status] || 'bg-muted text-muted-foreground'}`}>
+                      <span className={`capitalize text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[t.status] || 'bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200/60'}`}>
                         {t.status}
                       </span>
                     </td>

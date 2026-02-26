@@ -92,33 +92,33 @@ export function ProjectLayout() {
   const SidebarContent = () => (
     <>
       {/* Project identity */}
-      <div className="px-4 pt-4 pb-3.5 flex items-start justify-between gap-2 border-b border-white/[0.07]">
+      <div className="px-4 pt-4 pb-3.5 flex items-start justify-between gap-2 border-b border-gray-100">
         <div className="min-w-0">
           {project.jobNumber && (
-            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1 truncate">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1 truncate">
               #{project.jobNumber}
             </p>
           )}
-          <p className="text-[13px] font-semibold text-white leading-snug line-clamp-2">
+          <p className="text-[13px] font-semibold text-gray-900 leading-snug line-clamp-2">
             {project.name}
           </p>
           {project.stage && (
-            <p className="text-[11px] text-slate-500 mt-1 capitalize">{project.stage}</p>
+            <p className="text-[11px] text-gray-400 mt-1 capitalize">{project.stage}</p>
           )}
         </div>
         <button
-          className="md:hidden flex-shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 transition-colors"
+          className="md:hidden flex-shrink-0 mt-0.5 p-1 rounded hover:bg-gray-100 transition-colors"
           onClick={() => setSidebarOpen(false)}
         >
-          <X className="h-4 w-4 text-slate-500" />
+          <X className="h-4 w-4 text-gray-400" />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-5 space-y-6 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 py-4 space-y-5 overflow-y-auto scrollbar-thin">
         {NAV_GROUPS.map(group => (
           <div key={group.label}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-4 mb-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 px-4 mb-1">
               {group.label}
             </p>
             <ul className="space-y-px">
@@ -130,11 +130,11 @@ export function ProjectLayout() {
                       onClick={() => go(item.path)}
                       className={`w-full flex items-center gap-2.5 pr-3 py-[7px] text-[13px] transition-all text-left ${
                         isActive
-                          ? 'border-l-2 border-sky-400 pl-[14px] text-white font-semibold bg-white/[0.07]'
-                          : 'border-l-2 border-transparent pl-[14px] text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
+                          ? 'border-l-2 border-blue-600 pl-[14px] text-blue-700 font-semibold bg-blue-50'
+                          : 'border-l-2 border-transparent pl-[14px] text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      <item.icon className={`h-[14px] w-[14px] flex-shrink-0 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
+                      <item.icon className={`h-[14px] w-[14px] flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
                       {item.label}
                     </button>
                   </li>
@@ -164,8 +164,7 @@ export function ProjectLayout() {
           fixed md:static top-[50px] left-0 z-40
           h-[calc(100vh-50px)] md:h-full
           w-60 md:w-52 flex-shrink-0
-          bg-[#0f1c2e] flex flex-col
-          shadow-[1px_0_0_0_rgba(255,255,255,0.05)]
+          bg-white border-r border-gray-100 flex flex-col
           transition-transform duration-200 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
@@ -174,16 +173,16 @@ export function ProjectLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-background min-w-0">
+      <main className="flex-1 overflow-y-auto bg-gray-50 min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 z-20 bg-[#0f1c2e] px-4 py-2.5 flex items-center gap-3 shadow-sm">
+        <div className="md:hidden sticky top-0 z-20 bg-white border-b border-gray-100 px-4 py-2.5 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded hover:bg-white/10 transition-colors -ml-1"
+            className="p-1.5 rounded hover:bg-gray-100 transition-colors -ml-1"
           >
-            <Menu className="h-5 w-5 text-slate-400" />
+            <Menu className="h-5 w-5 text-gray-500" />
           </button>
-          <span className="text-sm font-semibold text-white truncate">
+          <span className="text-sm font-semibold text-gray-900 truncate">
             {currentItem?.label ?? project.name}
           </span>
         </div>

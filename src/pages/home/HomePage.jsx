@@ -27,10 +27,10 @@ const STAGE_STYLES = {
 };
 
 const ACTIVITY_TYPE_STYLES = {
-  rfi:       { color: 'bg-blue-100 text-blue-700',   label: 'RFI' },
-  submittal: { color: 'bg-violet-100 text-violet-700', label: 'Submittal' },
-  task:      { color: 'bg-amber-100 text-amber-700',  label: 'Task' },
-  project:   { color: 'bg-slate-100 text-slate-700',  label: 'Project' },
+  rfi:       { color: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200/60',     label: 'RFI' },
+  submittal: { color: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200/60', label: 'Submittal' },
+  task:      { color: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60',   label: 'Task' },
+  project:   { color: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200/60',     label: 'Project' },
 };
 
 // ─── New Project Dialog ───────────────────────────
@@ -127,7 +127,7 @@ function StatCard({ label, value, icon: Icon, iconColor, accentBar, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`bg-white rounded-lg overflow-hidden text-left transition-all hover:shadow-lg shadow-sm w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`bg-white rounded-xl overflow-hidden text-left transition-all hover:shadow-md shadow-sm ring-1 ring-black/[0.04] w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
       {accentBar && <div className={`h-[3px] w-full ${accentBar}`} />}
       <div className="flex items-start justify-between p-5">
@@ -149,7 +149,7 @@ function ProjectCard({ project, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-lg shadow-sm p-5 text-left hover:shadow-lg transition-all group w-full"
+      className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04] p-5 text-left hover:shadow-md transition-all group w-full"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -239,7 +239,7 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-full bg-background">
+    <div className="min-h-full bg-gray-50">
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
         {/* Header row */}
@@ -314,8 +314,10 @@ export function HomePage() {
 
         {/* Project grid */}
         {filteredProjects.length === 0 ? (
-          <div className="text-center py-16 rounded-lg text-muted-foreground bg-white shadow-sm">
-            <Building2 className="h-9 w-9 mx-auto mb-3 opacity-25" />
+          <div className="text-center py-16 text-muted-foreground">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 mb-3">
+              <Building2 className="h-6 w-6 text-blue-500" />
+            </div>
             <p className="font-medium text-sm">
               {userProjects.length === 0 ? 'No projects yet' : 'No projects match your filters'}
             </p>
@@ -341,9 +343,9 @@ export function HomePage() {
         <WeatherWidget />
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04]">
           {/* Feed header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold">Activity Feed</h2>
@@ -377,16 +379,18 @@ export function HomePage() {
           {/* Feed items */}
           {filteredActivity.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
-              <Clock className="h-7 w-7 mx-auto mb-2 opacity-25" />
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 mb-2">
+                <Clock className="h-5 w-5 text-gray-400" />
+              </div>
               <p>No activity yet. Start by creating RFIs, tasks, or submittals.</p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-gray-50">
               {filteredActivity.map(entry => {
                 const typeStyle = ACTIVITY_TYPE_STYLES[entry.type] || ACTIVITY_TYPE_STYLES.project;
                 return (
                   <div key={entry.id} className="flex items-start gap-3 px-5 py-3.5">
-                    <span className={`mt-0.5 flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wide ${typeStyle.color}`}>
+                    <span className={`mt-0.5 flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${typeStyle.color}`}>
                       {typeStyle.label}
                     </span>
                     <div className="flex-1 min-w-0">

@@ -16,8 +16,8 @@ const STAGES = ['bidding', 'pre-construction', 'course of construction', 'post-c
 
 function SectionCard({ title, children, isAdmin, editing, onEdit, onSave, onCancel }) {
   return (
-    <div className="bg-white rounded-xl border">
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b gap-2">
+    <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04]">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 gap-2">
         <h3 className="text-sm font-semibold">{title}</h3>
         {isAdmin ? (
           <div className="flex gap-2 flex-shrink-0">
@@ -172,8 +172,8 @@ export function AdminPage() {
       </SectionCard>
 
       {/* Specifications */}
-      <div className="bg-white rounded-xl border">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b gap-2">
+      <div className="bg-white rounded-xl shadow-sm ring-1 ring-black/[0.04]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 gap-2">
           <h3 className="text-sm font-semibold">Specifications</h3>
           {isAdmin ? (
             <Button size="sm" variant="ghost" className="h-7 px-2.5 text-xs gap-1 text-muted-foreground"
@@ -192,7 +192,7 @@ export function AdminPage() {
           ) : (
             <div className="divide-y rounded-md border overflow-hidden">
               {projectSpecs.map(spec => (
-                <div key={spec.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-muted/30 group">
+                <div key={spec.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 group">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xs font-mono font-semibold text-muted-foreground flex-shrink-0">{spec.number}</span>
                     <span className="text-sm truncate">{spec.title}</span>
