@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Sun, Cloud, CloudSun, CloudRain, CloudSnow, CloudLightning, Wind, MapPin } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Sun, Cloud, CloudSun, CloudRain, CloudSnow, CloudLightning, Wind, MapPin, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 const WMO_MAP = {
   0:  { Icon: Sun,            label: 'Clear' },
@@ -33,19 +35,12 @@ function getWmo(code) {
   return WMO_MAP[code] ?? { Icon: Cloud, label: 'Unknown' };
 }
 
-async function geolocate() {
-  return new Promise((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 })
-  );
-}
-
-async function geocodeCity(city, state) {
-  const q = [city, state].filter(Boolean).join(', ');
+async function geocodeCity(query) {
   const res = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json`
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`
   );
   const data = await res.json();
-  if (!data.results?.length) throw new Error('City not found');
+  if (!data.results?.length) throw new Error(`No results found for "${query}"`);
   const { latitude, longitude, name, admin1 } = data.results[0];
   return { latitude, longitude, locationName: [name, admin1].filter(Boolean).join(', ') };
 }
@@ -53,54 +48,80 @@ async function geocodeCity(city, state) {
 async function fetchForecast(lat, lon) {
   const res = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
     `&temperature_unit=fahrenheit&timezone=auto&forecast_days=7`
   );
-  return res.json();
+  const data = await res.json();
+  // normalise both old and new field name
+  if (data.daily && !data.daily.weather_code && data.daily.weathercode) {
+    data.daily.weather_code = data.daily.weathercode;
+  }
+  return data;
 }
 
 export function WeatherWidget({ city, state }) {
+  const initialQuery = [city, state].filter(Boolean).join(', ');
+
+  const [query, setQuery] = useState(initialQuery);
+  const [inputValue, setInputValue] = useState(initialQuery);
   const [data, setData] = useState(null);
   const [locationName, setLocationName] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!initialQuery);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        let lat, lon, name;
-
-        if (city) {
-          const result = await geocodeCity(city, state);
-          lat = result.latitude;
-          lon = result.longitude;
-          name = result.locationName;
-        } else {
-          const pos = await geolocate();
-          lat = pos.coords.latitude;
-          lon = pos.coords.longitude;
-          name = 'Current Location';
-        }
-
-        const forecast = await fetchForecast(lat, lon);
-        if (!cancelled) {
-          setData(forecast);
-          setLocationName(name);
-        }
-      } catch {
-        if (!cancelled) setError('Unable to load weather forecast.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+  const load = useCallback(async (q) => {
+    if (!q.trim()) return;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    try {
+      const { latitude, longitude, locationName: name } = await geocodeCity(q);
+      const forecast = await fetchForecast(latitude, longitude);
+      setData(forecast);
+      setLocationName(name);
+    } catch (e) {
+      setError(e.message || 'Unable to load forecast. Check the city name and try again.');
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    load();
-    return () => { cancelled = true; };
-  }, [city, state]);
+  // Auto-load when city prop is provided
+  useEffect(() => {
+    if (initialQuery) load(initialQuery);
+  }, [initialQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setQuery(inputValue);
+    load(inputValue);
+  };
+
+  const SearchBar = () => (
+    <form onSubmit={handleSearch} className="flex gap-2">
+      <Input
+        value={inputValue}
+        onChange={e => setInputValue(e.target.value)}
+        placeholder="Enter city, e.g. Chicago, IL"
+        className="h-8 text-sm"
+      />
+      <Button type="submit" size="sm" variant="outline" className="h-8 px-3">
+        <Search className="h-3.5 w-3.5" />
+      </Button>
+    </form>
+  );
+
+  // No city provided — show search prompt
+  if (!query.trim()) {
+    return (
+      <div className="bg-white rounded-xl border p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold">7-Day Forecast</h2>
+        </div>
+        <SearchBar />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -117,28 +138,46 @@ export function WeatherWidget({ city, state }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl border p-5 text-sm text-muted-foreground">
-        {error}
+      <div className="bg-white rounded-xl border p-5 space-y-3">
+        <h2 className="text-sm font-semibold">7-Day Forecast</h2>
+        <p className="text-sm text-destructive">{error}</p>
+        <SearchBar />
       </div>
     );
   }
+
+  if (!data?.daily) return null;
 
   const { daily } = data;
 
   return (
     <div className="bg-white rounded-xl border p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold">7-Day Forecast</h2>
-        {locationName && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" />
-            {locationName}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {locationName && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              {locationName}
+            </span>
+          )}
+          <form onSubmit={handleSearch} className="flex gap-1.5">
+            <Input
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              placeholder="Change city…"
+              className="h-7 text-xs w-36"
+            />
+            <Button type="submit" size="sm" variant="ghost" className="h-7 px-2">
+              <Search className="h-3 w-3" />
+            </Button>
+          </form>
+        </div>
       </div>
+
       <div className="grid grid-cols-7 gap-1.5">
         {daily.time.map((dateStr, i) => {
-          const { Icon, label } = getWmo(daily.weathercode[i]);
+          const { Icon, label } = getWmo(daily.weather_code[i]);
           const isToday = i === 0;
           const dayLabel = isToday ? 'Today' : format(new Date(dateStr + 'T12:00:00'), 'EEE');
           const hi = Math.round(daily.temperature_2m_max[i]);
