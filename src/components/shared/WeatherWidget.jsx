@@ -35,14 +35,26 @@ function getWmo(code) {
   return WMO_MAP[code] ?? { Icon: Cloud, label: 'Unknown' };
 }
 
-async function geocodeCity(query) {
-  const res = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`
-  );
-  const data = await res.json();
-  if (!data.results?.length) throw new Error(`No results found for "${query}"`);
-  const { latitude, longitude, name, admin1 } = data.results[0];
-  return { latitude, longitude, locationName: [name, admin1].filter(Boolean).join(', ') };
+// Nominatim (OpenStreetMap) — handles zip codes and city names reliably
+async function geocode(zip, city, state) {
+  let url;
+  if (zip && zip.trim()) {
+    url = `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(zip.trim())}&countrycodes=us&format=json&limit=1`;
+  } else {
+    const q = [city, state].filter(Boolean).join(', ');
+    if (!q.trim()) throw new Error('No location provided');
+    url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
+  }
+
+  const res = await fetch(url, { headers: { 'Accept-Language': 'en-US,en' } });
+  const results = await res.json();
+  if (!results.length) throw new Error('Location not found. Try a different zip or city.');
+
+  const { lat, lon, display_name } = results[0];
+  // Trim display_name to first two segments (city, state)
+  const parts = display_name.split(', ');
+  const locationName = parts.slice(0, 2).join(', ');
+  return { latitude: parseFloat(lat), longitude: parseFloat(lon), locationName };
 }
 
 async function fetchForecast(lat, lon) {
@@ -52,73 +64,71 @@ async function fetchForecast(lat, lon) {
     `&temperature_unit=fahrenheit&timezone=auto&forecast_days=7`
   );
   const data = await res.json();
-  // normalise both old and new field name
+  // Support both old and new field name
   if (data.daily && !data.daily.weather_code && data.daily.weathercode) {
     data.daily.weather_code = data.daily.weathercode;
   }
+  if (!data.daily?.weather_code) throw new Error('Unexpected forecast response.');
   return data;
 }
 
-export function WeatherWidget({ city, state }) {
-  const initialQuery = [city, state].filter(Boolean).join(', ');
+export function WeatherWidget({ zip, city, state }) {
+  const hasLocation = !!(zip?.trim() || city?.trim());
 
-  const [query, setQuery] = useState(initialQuery);
-  const [inputValue, setInputValue] = useState(initialQuery);
   const [data, setData] = useState(null);
   const [locationName, setLocationName] = useState('');
-  const [loading, setLoading] = useState(!!initialQuery);
+  const [loading, setLoading] = useState(hasLocation);
   const [error, setError] = useState(null);
+  const [inputValue, setInputValue] = useState('');
 
-  const load = useCallback(async (q) => {
-    if (!q.trim()) return;
+  const load = useCallback(async (overrideInput) => {
     setLoading(true);
     setError(null);
     setData(null);
     try {
-      const { latitude, longitude, locationName: name } = await geocodeCity(q);
+      const useZip = overrideInput ?? zip;
+      const useCity = overrideInput ? undefined : city;
+      const useState_ = overrideInput ? undefined : state;
+      const { latitude, longitude, locationName: name } = await geocode(useZip, useCity, useState_);
       const forecast = await fetchForecast(latitude, longitude);
       setData(forecast);
       setLocationName(name);
     } catch (e) {
-      setError(e.message || 'Unable to load forecast. Check the city name and try again.');
+      setError(e.message || 'Unable to load forecast.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [zip, city, state]);
 
-  // Auto-load when city prop is provided
   useEffect(() => {
-    if (initialQuery) load(initialQuery);
-  }, [initialQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (hasLocation) load();
+  }, [zip, city, state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setQuery(inputValue);
-    load(inputValue);
+    if (inputValue.trim()) load(inputValue.trim());
   };
 
-  const SearchBar = () => (
-    <form onSubmit={handleSearch} className="flex gap-2">
+  const SearchForm = ({ compact = false }) => (
+    <form onSubmit={handleSearch} className={`flex gap-2 ${compact ? '' : 'mt-1'}`}>
       <Input
         value={inputValue}
         onChange={e => setInputValue(e.target.value)}
-        placeholder="Enter city, e.g. Chicago, IL"
-        className="h-8 text-sm"
+        placeholder={compact ? 'Change zip or city…' : 'Enter zip code or city, e.g. 30301 or Atlanta, GA'}
+        className={compact ? 'h-7 text-xs w-44' : 'h-8 text-sm'}
       />
-      <Button type="submit" size="sm" variant="outline" className="h-8 px-3">
-        <Search className="h-3.5 w-3.5" />
+      <Button type="submit" size="sm" variant={compact ? 'ghost' : 'outline'} className={compact ? 'h-7 px-2' : 'h-8 px-3'}>
+        <Search className={compact ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
       </Button>
     </form>
   );
 
-  // No city provided — show search prompt
-  if (!query.trim()) {
+  if (!hasLocation && !data) {
     return (
       <div className="bg-white rounded-xl border p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold">7-Day Forecast</h2>
-        </div>
-        <SearchBar />
+        <h2 className="text-sm font-semibold mb-3">7-Day Forecast</h2>
+        <p className="text-xs text-muted-foreground mb-2">No location set for this project. Enter a zip or city:</p>
+        <SearchForm />
       </div>
     );
   }
@@ -141,7 +151,7 @@ export function WeatherWidget({ city, state }) {
       <div className="bg-white rounded-xl border p-5 space-y-3">
         <h2 className="text-sm font-semibold">7-Day Forecast</h2>
         <p className="text-sm text-destructive">{error}</p>
-        <SearchBar />
+        <SearchForm />
       </div>
     );
   }
@@ -161,17 +171,7 @@ export function WeatherWidget({ city, state }) {
               {locationName}
             </span>
           )}
-          <form onSubmit={handleSearch} className="flex gap-1.5">
-            <Input
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              placeholder="Change city…"
-              className="h-7 text-xs w-36"
-            />
-            <Button type="submit" size="sm" variant="ghost" className="h-7 px-2">
-              <Search className="h-3 w-3" />
-            </Button>
-          </form>
+          <SearchForm compact />
         </div>
       </div>
 

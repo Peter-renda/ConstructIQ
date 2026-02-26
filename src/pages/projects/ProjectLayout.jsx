@@ -188,7 +188,7 @@ export function ProjectLayout() {
 
         <Outlet />
         <div className="px-4 sm:px-6 pb-6">
-          <WeatherWidget city={project.city} state={project.state} />
+          <WeatherWidget zip={project.zip} city={project.city} state={project.state} />
         </div>
       </main>
     </div>
