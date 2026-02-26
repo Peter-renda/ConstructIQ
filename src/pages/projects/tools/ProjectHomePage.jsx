@@ -3,7 +3,6 @@ import { useData } from '../../../contexts/DataContext';
 import { FileQuestion, ClipboardList, CheckSquare, Activity, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
-import { WeatherWidget } from '../../../components/shared/WeatherWidget';
 
 const STAGE_STYLES = {
   'bidding':                'bg-amber-50 text-amber-700 ring-amber-200',
@@ -111,9 +110,6 @@ export function ProjectHomePage() {
           onClick={() => navigate(`/projects/${projectId}/tasks`)}
         />
       </div>
-
-      {/* Weather */}
-      <WeatherWidget city={project.city} state={project.state} />
 
       {/* Activity */}
       <div className="bg-white rounded-xl border">

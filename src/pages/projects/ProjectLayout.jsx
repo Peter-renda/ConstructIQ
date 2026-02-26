@@ -1,6 +1,7 @@
 import { Outlet, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useState, useMemo, useEffect } from 'react';
+import { WeatherWidget } from '../../components/shared/WeatherWidget';
 import {
   Home, BarChart2, FolderOpen, Users, CheckSquare, Settings,
   FileQuestion, ClipboardList, Send, List, Calendar, BookOpen,
@@ -186,6 +187,9 @@ export function ProjectLayout() {
         </div>
 
         <Outlet />
+        <div className="px-4 sm:px-6 pb-6">
+          <WeatherWidget city={project.city} state={project.state} />
+        </div>
       </main>
     </div>
   );
