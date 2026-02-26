@@ -92,34 +92,33 @@ export function ProjectLayout() {
   const SidebarContent = () => (
     <>
       {/* Project identity */}
-      <div className="px-4 pt-4 pb-3.5 border-b border-border/60 flex items-start justify-between gap-2 bg-white">
+      <div className="px-4 pt-4 pb-3.5 flex items-start justify-between gap-2 border-b border-white/[0.07]">
         <div className="min-w-0">
           {project.jobNumber && (
-            <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mb-1 truncate">
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1 truncate">
               #{project.jobNumber}
             </p>
           )}
-          <p className="text-[13px] font-bold text-foreground leading-snug line-clamp-2">
+          <p className="text-[13px] font-semibold text-white leading-snug line-clamp-2">
             {project.name}
           </p>
           {project.stage && (
-            <p className="text-[11px] text-muted-foreground mt-1 capitalize font-medium">{project.stage}</p>
+            <p className="text-[11px] text-slate-500 mt-1 capitalize">{project.stage}</p>
           )}
         </div>
-        {/* Close button — mobile only */}
         <button
-          className="md:hidden flex-shrink-0 mt-0.5 p-1 rounded hover:bg-muted transition-colors"
+          className="md:hidden flex-shrink-0 mt-0.5 p-1 rounded hover:bg-white/10 transition-colors"
           onClick={() => setSidebarOpen(false)}
         >
-          <X className="h-4 w-4 text-muted-foreground" />
+          <X className="h-4 w-4 text-slate-500" />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 space-y-6 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 py-5 space-y-6 overflow-y-auto scrollbar-thin">
         {NAV_GROUPS.map(group => (
           <div key={group.label}>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 px-4 mb-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-4 mb-1">
               {group.label}
             </p>
             <ul className="space-y-px">
@@ -129,13 +128,13 @@ export function ProjectLayout() {
                   <li key={item.path}>
                     <button
                       onClick={() => go(item.path)}
-                      className={`w-full flex items-center gap-2.5 pr-3 py-[7px] text-[13px] transition-colors text-left ${
+                      className={`w-full flex items-center gap-2.5 pr-3 py-[7px] text-[13px] transition-all text-left ${
                         isActive
-                          ? 'border-l-[3px] border-primary pl-[13px] text-primary font-semibold bg-primary/[0.07]'
-                          : 'border-l-[3px] border-transparent pl-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-100/70'
+                          ? 'border-l-2 border-sky-400 pl-[14px] text-white font-semibold bg-white/[0.07]'
+                          : 'border-l-2 border-transparent pl-[14px] text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
                       }`}
                     >
-                      <item.icon className={`h-[15px] w-[15px] flex-shrink-0 ${isActive ? 'text-primary' : 'text-slate-400'}`} />
+                      <item.icon className={`h-[14px] w-[14px] flex-shrink-0 ${isActive ? 'text-sky-400' : 'text-slate-500'}`} />
                       {item.label}
                     </button>
                   </li>
@@ -149,12 +148,12 @@ export function ProjectLayout() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-52px)] relative overflow-hidden">
+    <div className="flex h-[calc(100vh-50px)] relative overflow-hidden">
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -162,10 +161,11 @@ export function ProjectLayout() {
       {/* Sidebar — fixed overlay on mobile, static on desktop */}
       <aside
         className={`
-          fixed md:static top-[52px] left-0 z-40
-          h-[calc(100vh-52px)] md:h-full
-          w-64 md:w-56 flex-shrink-0
-          border-r bg-white flex flex-col
+          fixed md:static top-[50px] left-0 z-40
+          h-[calc(100vh-50px)] md:h-full
+          w-60 md:w-52 flex-shrink-0
+          bg-[#0f1c2e] flex flex-col
+          shadow-[1px_0_0_0_rgba(255,255,255,0.05)]
           transition-transform duration-200 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
@@ -174,16 +174,16 @@ export function ProjectLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-slate-50/50 min-w-0">
+      <main className="flex-1 overflow-y-auto bg-background min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 z-20 bg-white border-b px-4 py-2.5 flex items-center gap-3">
+        <div className="md:hidden sticky top-0 z-20 bg-[#0f1c2e] px-4 py-2.5 flex items-center gap-3 shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded-lg hover:bg-muted transition-colors -ml-1"
+            className="p-1.5 rounded hover:bg-white/10 transition-colors -ml-1"
           >
-            <Menu className="h-5 w-5 text-muted-foreground" />
+            <Menu className="h-5 w-5 text-slate-400" />
           </button>
-          <span className="text-sm font-semibold truncate">
+          <span className="text-sm font-semibold text-white truncate">
             {currentItem?.label ?? project.name}
           </span>
         </div>

@@ -127,15 +127,15 @@ function StatCard({ label, value, icon: Icon, iconColor, accentBar, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`bg-white rounded-lg overflow-hidden text-left transition-all hover:shadow-md shadow-sm border border-border/50 w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`bg-white rounded-lg overflow-hidden text-left transition-all hover:shadow-lg shadow-sm w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
       {accentBar && <div className={`h-[3px] w-full ${accentBar}`} />}
       <div className="flex items-start justify-between p-5">
         <div>
-          <p className="text-[11px] font-semibold text-muted-foreground mb-2 uppercase tracking-wide">{label}</p>
-          <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+          <p className="text-[10px] font-bold text-muted-foreground mb-2.5 uppercase tracking-widest">{label}</p>
+          <p className="text-[26px] font-bold tracking-tight text-foreground leading-none">{value}</p>
         </div>
-        <div className={`p-2 rounded-lg ${iconColor}`}>
+        <div className={`p-2 rounded-md ${iconColor}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
@@ -149,7 +149,7 @@ function ProjectCard({ project, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-lg border border-border/50 shadow-sm p-5 text-left hover:shadow-md transition-all group w-full"
+      className="bg-white rounded-lg shadow-sm p-5 text-left hover:shadow-lg transition-all group w-full"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -239,8 +239,8 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-full bg-slate-50/50">
-      <div className="max-w-6xl mx-auto px-6 py-7 space-y-7">
+    <div className="min-h-full bg-background">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
         {/* Header row */}
         <div className="flex items-center justify-between">
@@ -293,10 +293,10 @@ export function HomePage() {
             <button
               key={stage}
               onClick={() => setStageFilter(stage)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all capitalize ${
                 stageFilter === stage
                   ? 'bg-primary text-white shadow-sm'
-                  : 'bg-white border text-muted-foreground hover:text-foreground hover:border-gray-300'
+                  : 'bg-white shadow-sm text-muted-foreground hover:text-foreground hover:shadow'
               }`}
             >
               {stage === 'all' ? 'All Stages' : stage}
@@ -314,7 +314,7 @@ export function HomePage() {
 
         {/* Project grid */}
         {filteredProjects.length === 0 ? (
-          <div className="text-center py-16 rounded-xl border-2 border-dashed text-muted-foreground bg-white/50">
+          <div className="text-center py-16 rounded-lg text-muted-foreground bg-white shadow-sm">
             <Building2 className="h-9 w-9 mx-auto mb-3 opacity-25" />
             <p className="font-medium text-sm">
               {userProjects.length === 0 ? 'No projects yet' : 'No projects match your filters'}
@@ -341,7 +341,7 @@ export function HomePage() {
         <WeatherWidget />
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-lg border border-border/50 shadow-sm">
+        <div className="bg-white rounded-lg shadow-sm">
           {/* Feed header */}
           <div className="flex items-center justify-between px-5 py-4 border-b">
             <div className="flex items-center gap-2">

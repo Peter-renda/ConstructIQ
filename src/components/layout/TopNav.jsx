@@ -29,13 +29,13 @@ export function TopNav() {
     : user?.email?.[0]?.toUpperCase() ?? '?';
 
   return (
-    <header className="h-[52px] bg-[#1a2638] flex items-center px-4 sm:px-5 gap-2 sm:gap-3 sticky top-0 z-40 border-b border-white/[0.06]">
+    <header className="h-[50px] bg-[#0f1c2e] flex items-center px-4 sm:px-5 gap-2 sm:gap-3 sticky top-0 z-50 shadow-[0_1px_0_0_rgba(255,255,255,0.06)]">
       {/* Logo */}
       <button
         onClick={() => navigate('/home')}
         className="flex items-center gap-2.5 font-bold text-white text-sm hover:opacity-80 transition-opacity flex-shrink-0"
       >
-        <div className="w-7 h-7 bg-[hsl(208,92%,42%)] rounded-md flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 bg-sky-500 rounded flex items-center justify-center">
           <Building2 className="h-4 w-4 text-white" />
         </div>
         <span className="tracking-tight hidden xs:inline sm:inline">ConstructIQ</span>
@@ -62,7 +62,7 @@ export function TopNav() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="focus:outline-none rounded-full ring-2 ring-transparent focus:ring-white/30 ring-offset-1 ring-offset-[#1a2638]">
-            <div className="w-8 h-8 rounded-full bg-[hsl(208,92%,48%)] flex items-center justify-center text-white text-xs font-bold hover:bg-[hsl(208,92%,55%)] transition-colors select-none">
+            <div className="w-8 h-8 rounded-full bg-sky-600 flex items-center justify-center text-white text-xs font-bold hover:bg-sky-500 transition-colors select-none">
               {initials}
             </div>
           </button>
