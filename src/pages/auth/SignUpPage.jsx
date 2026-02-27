@@ -15,6 +15,7 @@ export function SignUpPage() {
   const [companyRole, setCompanyRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -24,8 +25,9 @@ export function SignUpPage() {
     if (password !== confirmPassword) { setError('Passwords do not match'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, companyRole);
+    const { data, error } = await signUp(email, password, fullName, companyRole);
     if (error) { setError(error.message); setLoading(false); }
+    else if (!data?.session) { setEmailSent(true); setLoading(false); }
     else navigate('/home');
   };
 
@@ -41,85 +43,102 @@ export function SignUpPage() {
 
       {/* Card */}
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">Create an account</h1>
-        <p className="text-sm text-gray-500 mb-6">Get started with ConstructIQ today</p>
+        {emailSent ? (
+          <>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Check your email</h1>
+            <p className="text-sm text-gray-500 mb-6">
+              We sent a confirmation link to{' '}
+              <span className="font-medium text-gray-700">{email}</span>.
+              Click it to activate your account.
+            </p>
+            <p className="text-center text-sm text-gray-500 mt-2">
+              Already confirmed?{' '}
+              <Link to="/sign-in" className="text-primary hover:underline font-medium">Sign in</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Create an account</h1>
+            <p className="text-sm text-gray-500 mb-6">Get started with ConstructIQ today</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/8 border border-destructive/20 rounded-lg px-3.5 py-2.5">
-              {error}
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <Label htmlFor="fullName">Full name *</Label>
-            <Input
-              id="fullName"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Jane Smith"
-              required
-              autoFocus
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              required
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Company role *</Label>
-            <Select value={companyRole} onValueChange={setCompanyRole}>
-              <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="administrator">Administrator</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-400">Administrators can create projects and manage users.</p>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Min. 6 characters"
-              required
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="confirmPassword">Confirm password *</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="h-10"
-            />
-          </div>
-          <Button type="submit" className="w-full h-10" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create Account'}
-          </Button>
-        </form>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/8 border border-destructive/20 rounded-lg px-3.5 py-2.5">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName">Full name *</Label>
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Jane Smith"
+                  required
+                  autoFocus
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Company role *</Label>
+                <Select value={companyRole} onValueChange={setCompanyRole}>
+                  <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="administrator">Administrator</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400">Administrators can create projects and manage users.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword">Confirm password *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="h-10"
+                />
+              </div>
+              <Button type="submit" className="w-full h-10" disabled={loading}>
+                {loading ? 'Creating account…' : 'Create Account'}
+              </Button>
+            </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link to="/sign-in" className="text-primary hover:underline font-medium">
-            Sign in
-          </Link>
-        </p>
+            <p className="text-center text-sm text-gray-500 mt-6">
+              Already have an account?{' '}
+              <Link to="/sign-in" className="text-primary hover:underline font-medium">
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
       </div>
 
       <p className="text-white/30 text-xs mt-8">© {new Date().getFullYear()} ConstructIQ</p>

@@ -1,75 +1,134 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const DataContext = createContext(null);
 
-function load(key, def = []) {
-  try {
-    const val = localStorage.getItem(`constructiq_${key}`);
-    return val ? JSON.parse(val) : def;
-  } catch { return def; }
+// ─── snake_case ↔ camelCase helpers ─────────────────────────────────────────
+
+function snakeToCamel(str) {
+  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
 }
 
-function save(key, val) {
-  localStorage.setItem(`constructiq_${key}`, JSON.stringify(val));
+function camelToSnake(str) {
+  return str.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`);
 }
 
-function useLocalState(key, def = []) {
-  const [state, setState] = useState(() => load(key, def));
-  const update = useCallback((fn) => {
-    setState(prev => {
-      const next = typeof fn === 'function' ? fn(prev) : fn;
-      save(key, next);
-      return next;
-    });
-  }, [key]);
-  return [state, update];
+/** Convert a DB row (snake_case keys) → app object (camelCase keys) */
+function fromDb(row) {
+  if (!row) return row;
+  const out = {};
+  for (const [k, v] of Object.entries(row)) out[snakeToCamel(k)] = v;
+  return out;
 }
+
+/** Convert an app object (camelCase keys) → DB row (snake_case keys).
+ *  Always strips `id` and `createdAt` so the DB generates them.
+ *  Converts empty strings to null so uuid/date columns don't reject them. */
+function toDb(obj) {
+  if (!obj) return obj;
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'id' || k === 'createdAt') continue;
+    out[camelToSnake(k)] = v === '' ? null : v;
+  }
+  return out;
+}
+
+// ─── Provider ────────────────────────────────────────────────────────────────
 
 export function DataProvider({ children }) {
-  const [projects, setProjects] = useLocalState('projects');
-  const [projectMembers, setProjectMembers] = useLocalState('projectMembers');
-  const [dirUsers, setDirUsers] = useLocalState('dirUsers');
-  const [dirCompanies, setDirCompanies] = useLocalState('dirCompanies');
-  const [distGroups, setDistGroups] = useLocalState('distGroups');
-  const [documents, setDocuments] = useLocalState('documents');
-  const [tasks, setTasks] = useLocalState('tasks');
-  const [rfis, setRfis] = useLocalState('rfis');
-  const [submittals, setSubmittals] = useLocalState('submittals');
-  const [specifications, setSpecifications] = useLocalState('specifications');
-  const [activityFeed, setActivityFeed] = useLocalState('activityFeed');
+  const [dataLoading, setDataLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
+  const [projectMembers, setProjectMembers] = useState([]);
+  const [dirUsers, setDirUsers] = useState([]);
+  const [dirCompanies, setDirCompanies] = useState([]);
+  const [distGroups, setDistGroups] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [rfis, setRfis] = useState([]);
+  const [submittals, setSubmittals] = useState([]);
+  const [specifications, setSpecifications] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
 
-  function addActivity(projectId, type, action, details, userId) {
-    const entry = {
-      id: crypto.randomUUID(),
-      projectId,
-      type,
-      action,
-      details,
-      userId,
-      createdAt: new Date().toISOString(),
-    };
-    setActivityFeed(prev => [entry, ...prev.slice(0, 499)]);
-    return entry;
+  useEffect(() => {
+    async function fetchAll() {
+      const [
+        { data: proj }, { data: mem },
+        { data: du }, { data: dc }, { data: dg },
+        { data: docs }, { data: tsk }, { data: rfi },
+        { data: sub }, { data: spec }, { data: act },
+      ] = await Promise.all([
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('project_members').select('*'),
+        supabase.from('dir_users').select('*'),
+        supabase.from('dir_companies').select('*'),
+        supabase.from('dist_groups').select('*'),
+        supabase.from('documents').select('*'),
+        supabase.from('tasks').select('*'),
+        supabase.from('rfis').select('*'),
+        supabase.from('submittals').select('*'),
+        supabase.from('specifications').select('*'),
+        supabase.from('activity_feed').select('*').order('created_at', { ascending: false }).limit(500),
+      ]);
+      setProjects((proj || []).map(fromDb));
+      setProjectMembers((mem || []).map(fromDb));
+      setDirUsers((du || []).map(fromDb));
+      setDirCompanies((dc || []).map(fromDb));
+      setDistGroups((dg || []).map(fromDb));
+      setDocuments((docs || []).map(fromDb));
+      setTasks((tsk || []).map(fromDb));
+      setRfis((rfi || []).map(fromDb));
+      setSubmittals((sub || []).map(fromDb));
+      setSpecifications((spec || []).map(fromDb));
+      setActivityFeed((act || []).map(fromDb));
+      setDataLoading(false);
+    }
+    fetchAll();
+  }, []);
+
+  // ─── Activity ──────────────────────────────────────────────────────────────
+  async function addActivity(projectId, type, action, details, userId) {
+    const { data } = await supabase
+      .from('activity_feed')
+      .insert({ project_id: projectId, type, action, details, user_id: userId })
+      .select()
+      .single();
+    if (data) setActivityFeed(prev => [fromDb(data), ...prev.slice(0, 499)]);
   }
 
-  // ─── Projects ──────────────────────────────────────
-  function addProject(data, userId) {
-    const p = { id: crypto.randomUUID(), ...data, createdAt: new Date().toISOString() };
-    setProjects(prev => [...prev, p]);
-    // Auto-add creator as project admin
+  // ─── Projects ──────────────────────────────────────────────────────────────
+  async function addProject(data, userId) {
+    const { data: row, error } = await supabase
+      .from('projects')
+      .insert({ ...toDb(data), created_by: userId })
+      .select()
+      .single();
+    if (error || !row) { console.error('addProject:', error); return null; }
+    const p = fromDb(row);
+    setProjects(prev => [p, ...prev]);
     if (userId) {
-      setProjectMembers(prev => [...prev, { id: crypto.randomUUID(), projectId: p.id, userId, role: 'administrator' }]);
+      const { data: mem } = await supabase
+        .from('project_members')
+        .insert({ project_id: p.id, user_id: userId, role: 'administrator' })
+        .select()
+        .single();
+      if (mem) setProjectMembers(prev => [...prev, fromDb(mem)]);
     }
     addActivity(p.id, 'project', 'created', `Project "${p.name}" created`, userId);
     return p;
   }
 
-  function updateProject(id, data, userId) {
+  async function updateProject(id, data, userId) {
+    const { error } = await supabase.from('projects').update(toDb(data)).eq('id', id);
+    if (error) { console.error('updateProject:', error); return; }
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-    addActivity(id, 'project', 'updated', `Project information updated`, userId);
+    addActivity(id, 'project', 'updated', 'Project information updated', userId);
   }
 
-  function deleteProject(id) {
+  async function deleteProject(id) {
+    await supabase.from('projects').delete().eq('id', id);
+    // CASCADE in Supabase deletes all related rows; mirror in local state
     setProjects(prev => prev.filter(p => p.id !== id));
     setProjectMembers(prev => prev.filter(m => m.projectId !== id));
     setDirUsers(prev => prev.filter(u => u.projectId !== id));
@@ -83,19 +142,27 @@ export function DataProvider({ children }) {
     setSpecifications(prev => prev.filter(s => s.projectId !== id));
   }
 
-  // ─── Project Members ────────────────────────────────
-  function addProjectMember(projectId, userId, role) {
+  // ─── Project Members ────────────────────────────────────────────────────────
+  async function addProjectMember(projectId, userId, role) {
     const existing = projectMembers.find(m => m.projectId === projectId && m.userId === userId);
     if (existing) {
+      await supabase.from('project_members').update({ role })
+        .eq('project_id', projectId).eq('user_id', userId);
       setProjectMembers(prev => prev.map(m =>
         m.projectId === projectId && m.userId === userId ? { ...m, role } : m
       ));
     } else {
-      setProjectMembers(prev => [...prev, { id: crypto.randomUUID(), projectId, userId, role }]);
+      const { data } = await supabase
+        .from('project_members')
+        .insert({ project_id: projectId, user_id: userId, role })
+        .select().single();
+      if (data) setProjectMembers(prev => [...prev, fromDb(data)]);
     }
   }
 
-  function removeProjectMember(projectId, userId) {
+  async function removeProjectMember(projectId, userId) {
+    await supabase.from('project_members').delete()
+      .eq('project_id', projectId).eq('user_id', userId);
     setProjectMembers(prev => prev.filter(m => !(m.projectId === projectId && m.userId === userId)));
   }
 
@@ -104,212 +171,244 @@ export function DataProvider({ children }) {
   }
 
   function getUserProjects(userId) {
-    const memberProjectIds = new Set(projectMembers.filter(m => m.userId === userId).map(m => m.projectId));
-    return projects.filter(p => memberProjectIds.has(p.id));
+    const ids = new Set(projectMembers.filter(m => m.userId === userId).map(m => m.projectId));
+    return projects.filter(p => ids.has(p.id));
   }
 
-  // ─── Directory ─────────────────────────────────────
-  function addDirUser(projectId, data) {
-    const u = { id: crypto.randomUUID(), projectId, ...data, createdAt: new Date().toISOString() };
-    setDirUsers(prev => [...prev, u]);
+  // ─── Directory Users ────────────────────────────────────────────────────────
+  async function addDirUser(projectId, data) {
+    const { data: row } = await supabase
+      .from('dir_users')
+      .insert({ ...toDb(data), project_id: projectId })
+      .select().single();
+    const u = fromDb(row);
+    if (u) setDirUsers(prev => [...prev, u]);
     return u;
   }
 
-  function updateDirUser(id, data) {
+  async function updateDirUser(id, data) {
+    await supabase.from('dir_users').update(toDb(data)).eq('id', id);
     setDirUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u));
   }
 
-  function deleteDirUser(id) {
+  async function deleteDirUser(id) {
+    await supabase.from('dir_users').delete().eq('id', id);
     setDirUsers(prev => prev.filter(u => u.id !== id));
   }
 
-  function addDirCompany(projectId, data) {
-    const c = { id: crypto.randomUUID(), projectId, ...data, createdAt: new Date().toISOString() };
-    setDirCompanies(prev => [...prev, c]);
+  // ─── Directory Companies ────────────────────────────────────────────────────
+  async function addDirCompany(projectId, data) {
+    const { data: row } = await supabase
+      .from('dir_companies')
+      .insert({ ...toDb(data), project_id: projectId })
+      .select().single();
+    const c = fromDb(row);
+    if (c) setDirCompanies(prev => [...prev, c]);
     return c;
   }
 
-  function updateDirCompany(id, data) {
+  async function updateDirCompany(id, data) {
+    await supabase.from('dir_companies').update(toDb(data)).eq('id', id);
     setDirCompanies(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
   }
 
-  function deleteDirCompany(id) {
+  async function deleteDirCompany(id) {
+    await supabase.from('dir_companies').delete().eq('id', id);
     setDirCompanies(prev => prev.filter(c => c.id !== id));
   }
 
-  function addDistGroup(projectId, data) {
-    const g = { id: crypto.randomUUID(), projectId, ...data, createdAt: new Date().toISOString() };
-    setDistGroups(prev => [...prev, g]);
+  // ─── Distribution Groups ────────────────────────────────────────────────────
+  async function addDistGroup(projectId, data) {
+    const { data: row } = await supabase
+      .from('dist_groups')
+      .insert({ ...toDb(data), project_id: projectId })
+      .select().single();
+    const g = fromDb(row);
+    if (g) setDistGroups(prev => [...prev, g]);
     return g;
   }
 
-  function updateDistGroup(id, data) {
+  async function updateDistGroup(id, data) {
+    await supabase.from('dist_groups').update(toDb(data)).eq('id', id);
     setDistGroups(prev => prev.map(g => g.id === id ? { ...g, ...data } : g));
   }
 
-  function deleteDistGroup(id) {
+  async function deleteDistGroup(id) {
+    await supabase.from('dist_groups').delete().eq('id', id);
     setDistGroups(prev => prev.filter(g => g.id !== id));
   }
 
-  // ─── Documents ─────────────────────────────────────
-  function addDocument(projectId, parentId, name, type, fileData = null) {
-    const doc = {
-      id: crypto.randomUUID(),
-      projectId,
-      parentId: parentId || null,
-      name,
-      type,
-      fileData,
-      createdAt: new Date().toISOString(),
-    };
-    setDocuments(prev => [...prev, doc]);
+  // ─── Documents ─────────────────────────────────────────────────────────────
+  async function addDocument(projectId, parentId, name, type, fileData = null) {
+    const { data: row } = await supabase
+      .from('documents')
+      .insert({ project_id: projectId, parent_id: parentId || null, name, type, file_data: fileData })
+      .select().single();
+    const doc = fromDb(row);
+    if (doc) setDocuments(prev => [...prev, doc]);
     return doc;
   }
 
-  function updateDocument(id, data) {
+  async function updateDocument(id, data) {
+    await supabase.from('documents').update(toDb(data)).eq('id', id);
     setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...data } : d));
   }
 
-  function deleteDocument(id) {
-    const deleteRecursive = (docId, docs) => {
+  async function deleteDocument(id) {
+    await supabase.from('documents').delete().eq('id', id);
+    // CASCADE handles children in DB; mirror recursively in local state
+    const deleteLocal = (docId, docs) => {
       const children = docs.filter(d => d.parentId === docId);
       let remaining = docs.filter(d => d.id !== docId);
-      for (const child of children) {
-        remaining = deleteRecursive(child.id, remaining);
-      }
+      for (const child of children) remaining = deleteLocal(child.id, remaining);
       return remaining;
     };
-    setDocuments(prev => deleteRecursive(id, prev));
+    setDocuments(prev => deleteLocal(id, prev));
   }
 
-  function copyDocument(id, newParentId) {
-    const copyRecursive = (docId, newParentIdArg, allDocs) => {
+  async function copyDocument(id, newParentId) {
+    const copyRecursive = async (docId, newParentIdArg, allDocs) => {
       const doc = allDocs.find(d => d.id === docId);
       if (!doc) return [];
-      const newId = crypto.randomUUID();
-      const newDoc = { ...doc, id: newId, parentId: newParentIdArg, name: `${doc.name} (copy)`, createdAt: new Date().toISOString() };
+      const { data: row } = await supabase
+        .from('documents')
+        .insert({ project_id: doc.projectId, parent_id: newParentIdArg, name: `${doc.name} (copy)`, type: doc.type, file_data: doc.fileData })
+        .select().single();
+      const newDoc = fromDb(row);
       const children = allDocs.filter(d => d.parentId === docId);
-      const childCopies = children.flatMap(c => copyRecursive(c.id, newId, allDocs));
+      const childCopies = [];
+      for (const c of children) childCopies.push(...await copyRecursive(c.id, newDoc.id, allDocs));
       return [newDoc, ...childCopies];
     };
-    setDocuments(prev => [...prev, ...copyRecursive(id, newParentId, prev)]);
+    const copies = await copyRecursive(id, newParentId, documents);
+    setDocuments(prev => [...prev, ...copies]);
   }
 
-  function moveDocument(id, newParentId) {
+  async function moveDocument(id, newParentId) {
+    await supabase.from('documents').update({ parent_id: newParentId || null }).eq('id', id);
     setDocuments(prev => prev.map(d => d.id === id ? { ...d, parentId: newParentId || null } : d));
   }
 
-  // ─── Tasks ─────────────────────────────────────────
-  function addTask(projectId, data, userId) {
+  // ─── Tasks ─────────────────────────────────────────────────────────────────
+  async function addTask(projectId, data, userId) {
     const projectTasks = tasks.filter(t => t.projectId === projectId);
     const maxNum = projectTasks.reduce((m, t) => Math.max(m, t.taskNumber || 0), 0);
-    const task = {
-      id: crypto.randomUUID(),
-      projectId,
-      taskNumber: data.taskNumber || maxNum + 1,
-      status: 'open',
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
+    const taskNumber = data.taskNumber || maxNum + 1;
+    const { data: row, error } = await supabase
+      .from('tasks')
+      .insert({ ...toDb(data), project_id: projectId, task_number: taskNumber, status: data.status || 'open' })
+      .select().single();
+    if (error || !row) { console.error('addTask:', error); return null; }
+    const task = fromDb(row);
     setTasks(prev => [...prev, task]);
     addActivity(projectId, 'task', 'created', `Task #${task.taskNumber}: ${task.title}`, userId);
     return task;
   }
 
-  function updateTask(id, data, userId) {
+  async function updateTask(id, data, userId) {
+    await supabase.from('tasks').update(toDb(data)).eq('id', id);
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
     const task = tasks.find(t => t.id === id);
     if (task) addActivity(task.projectId, 'task', 'updated', `Task #${task.taskNumber}: ${task.title} updated`, userId);
   }
 
-  function deleteTask(id) {
+  async function deleteTask(id) {
+    await supabase.from('tasks').delete().eq('id', id);
     setTasks(prev => prev.filter(t => t.id !== id));
   }
 
-  // ─── RFIs ──────────────────────────────────────────
-  function addRfi(projectId, data, userId) {
+  // ─── RFIs ──────────────────────────────────────────────────────────────────
+  async function addRfi(projectId, data, userId) {
     const projectRfis = rfis.filter(r => r.projectId === projectId);
     const maxNum = projectRfis.reduce((m, r) => Math.max(m, r.rfiNumber || 0), 0);
-    const rfi = {
-      id: crypto.randomUUID(),
-      projectId,
-      rfiNumber: data.rfiNumber || maxNum + 1,
-      responses: [],
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    setRfis(prev => [...prev, rfi]);
+    const rfiNumber = data.rfiNumber || maxNum + 1;
+    const payload = { ...toDb(data), project_id: projectId, rfi_number: rfiNumber, responses: data.responses || [] };
+    const { data: row, error } = await supabase
+      .from('rfis')
+      .insert(payload)
+      .select().single();
+    if (error || !row) { console.error('addRfi:', error); return null; }
+    const rfi = fromDb(row);
+    // Refetch all rfis so the list reflects the real DB state
+    const { data: fresh } = await supabase.from('rfis').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
+    setRfis(prev => [...prev.filter(r => r.projectId !== projectId), ...(fresh || []).map(fromDb)]);
     addActivity(projectId, 'rfi', 'created', `RFI #${rfi.rfiNumber}: ${rfi.subject}`, userId);
     return rfi;
   }
 
-  function updateRfi(id, data, userId) {
+  async function updateRfi(id, data, userId) {
+    await supabase.from('rfis').update(toDb(data)).eq('id', id);
     setRfis(prev => prev.map(r => r.id === id ? { ...r, ...data } : r));
     const rfi = rfis.find(r => r.id === id);
     if (rfi) addActivity(rfi.projectId, 'rfi', 'updated', `RFI #${rfi.rfiNumber}: ${rfi.subject} updated`, userId);
   }
 
-  function addRfiResponse(rfiId, response, userId) {
+  async function addRfiResponse(rfiId, response, userId) {
     const rfi = rfis.find(r => r.id === rfiId);
-    setRfis(prev => prev.map(r => r.id === rfiId ? {
-      ...r,
-      responses: [...(r.responses || []), {
-        id: crypto.randomUUID(),
-        ...response,
-        createdAt: new Date().toISOString(),
-      }]
-    } : r));
-    if (rfi) addActivity(rfi.projectId, 'rfi', 'response', `RFI #${rfi.rfiNumber} received a response`, userId);
+    if (!rfi) return;
+    const newResponse = { id: crypto.randomUUID(), ...response, createdAt: new Date().toISOString() };
+    const updatedResponses = [...(rfi.responses || []), newResponse];
+    await supabase.from('rfis').update({ responses: updatedResponses }).eq('id', rfiId);
+    setRfis(prev => prev.map(r => r.id === rfiId ? { ...r, responses: updatedResponses } : r));
+    addActivity(rfi.projectId, 'rfi', 'response', `RFI #${rfi.rfiNumber} received a response`, userId);
   }
 
-  function deleteRfi(id) {
+  async function deleteRfi(id) {
+    await supabase.from('rfis').delete().eq('id', id);
     setRfis(prev => prev.filter(r => r.id !== id));
   }
 
-  // ─── Specifications ─────────────────────────────────
-  function addSpec(projectId, data) {
-    const spec = { id: crypto.randomUUID(), projectId, ...data, createdAt: new Date().toISOString() };
-    setSpecifications(prev => [...prev, spec]);
+  // ─── Specifications ─────────────────────────────────────────────────────────
+  async function addSpec(projectId, data) {
+    const { data: row } = await supabase
+      .from('specifications')
+      .insert({ ...toDb(data), project_id: projectId })
+      .select().single();
+    const spec = fromDb(row);
+    if (spec) setSpecifications(prev => [...prev, spec]);
     return spec;
   }
 
-  function updateSpec(id, data) {
+  async function updateSpec(id, data) {
+    await supabase.from('specifications').update(toDb(data)).eq('id', id);
     setSpecifications(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
   }
 
-  function deleteSpec(id) {
+  async function deleteSpec(id) {
+    await supabase.from('specifications').delete().eq('id', id);
     setSpecifications(prev => prev.filter(s => s.id !== id));
   }
 
-  // ─── Submittals ────────────────────────────────────
-  function addSubmittal(projectId, data, userId) {
+  // ─── Submittals ─────────────────────────────────────────────────────────────
+  async function addSubmittal(projectId, data, userId) {
     const projectSubs = submittals.filter(s => s.projectId === projectId);
     const maxNum = projectSubs.reduce((m, s) => Math.max(m, s.submittalNumber || 0), 0);
-    const sub = {
-      id: crypto.randomUUID(),
-      projectId,
-      submittalNumber: maxNum + 1,
-      status: 'open',
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
+    const { data: row, error } = await supabase
+      .from('submittals')
+      .insert({ ...toDb(data), project_id: projectId, submittal_number: maxNum + 1, status: data.status || 'open' })
+      .select().single();
+    if (error || !row) { console.error('addSubmittal:', error); return null; }
+    const sub = fromDb(row);
     setSubmittals(prev => [...prev, sub]);
     addActivity(projectId, 'submittal', 'created', `Submittal #${sub.submittalNumber}: ${sub.title}`, userId);
     return sub;
   }
 
-  function updateSubmittal(id, data, userId) {
+  async function updateSubmittal(id, data, userId) {
+    await supabase.from('submittals').update(toDb(data)).eq('id', id);
     setSubmittals(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
     const sub = submittals.find(s => s.id === id);
     if (sub) addActivity(sub.projectId, 'submittal', 'updated', `Submittal #${sub.submittalNumber} updated`, userId);
   }
 
-  function deleteSubmittal(id) {
+  async function deleteSubmittal(id) {
+    await supabase.from('submittals').delete().eq('id', id);
     setSubmittals(prev => prev.filter(s => s.id !== id));
   }
 
   return (
     <DataContext.Provider value={{
+      dataLoading,
       projects, projectMembers, dirUsers, dirCompanies, distGroups,
       documents, tasks, rfis, submittals, activityFeed,
       addProject, updateProject, deleteProject,

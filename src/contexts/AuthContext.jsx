@@ -1,22 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
-const USERS_KEY = 'constructiq_users';
-const SESSION_KEY = 'constructiq_session';
-
-function getStoredUsers() {
-  try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch { return []; }
-}
-function saveStoredUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-function getStoredSession() {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
-}
-function saveStoredSession(session) {
-  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  else localStorage.removeItem(SESSION_KEY);
+async function fetchProfile(userId) {
+  const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  return data;
 }
 
 export function AuthProvider({ children }) {
@@ -25,62 +14,52 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const session = getStoredSession();
-    if (session) {
-      setUser(session.user);
-      setProfile(session.profile);
-    }
-    setLoading(false);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        setProfile(await fetchProfile(session.user.id));
+      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setProfile(await fetchProfile(session.user.id));
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function signIn(email, password) {
-    const users = getStoredUsers();
-    const found = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (!found) return { error: { message: 'Invalid email or password' } };
-    const { password: _pw, ...safeUser } = found;
-    const session = { user: { id: safeUser.id, email: safeUser.email }, profile: safeUser };
-    saveStoredSession(session);
-    setUser(session.user);
-    setProfile(safeUser);
-    return { data: session, error: null };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error };
+    return { data, error: null };
   }
 
   async function signUp(email, password, fullName, companyRole = 'user') {
-    const users = getStoredUsers();
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { error: { message: 'An account with this email already exists' } };
-    }
-    const newUser = {
-      id: crypto.randomUUID(),
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      full_name: fullName,
-      company_role: companyRole,
-      created_at: new Date().toISOString(),
-    };
-    saveStoredUsers([...users, newUser]);
-    const { password: _pw, ...safeUser } = newUser;
-    const session = { user: { id: safeUser.id, email: safeUser.email }, profile: safeUser };
-    saveStoredSession(session);
-    setUser(session.user);
-    setProfile(safeUser);
-    return { data: session, error: null };
+      options: { data: { full_name: fullName, company_role: companyRole } },
+    });
+    if (error) return { error };
+    return { data, error: null };
   }
 
   async function signOut() {
-    saveStoredSession(null);
-    setUser(null);
-    setProfile(null);
+    await supabase.auth.signOut();
   }
 
-  function updateProfile(updates) {
-    const users = getStoredUsers();
-    const updated = users.map(u => u.id === user?.id ? { ...u, ...updates } : u);
-    saveStoredUsers(updated);
-    const newProfile = { ...profile, ...updates };
-    setProfile(newProfile);
-    const session = getStoredSession();
-    if (session) saveStoredSession({ ...session, profile: newProfile });
+  async function updateProfile(updates) {
+    if (!user) return { error: { message: 'Not authenticated' } };
+    const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+    if (!error) setProfile(prev => ({ ...prev, ...updates }));
+    return { error };
   }
 
   return (

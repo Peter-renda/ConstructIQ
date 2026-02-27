@@ -710,14 +710,15 @@ export function RFIsPage() {
         companies={projectCompanies}
         specs={projectSpecs}
         nextNumber={nextNumber}
-        onSubmit={(data) => {
+        onSubmit={async (data) => {
           if (editRfi) {
-            updateRfi(editRfi.id, data, user?.id);
+            await updateRfi(editRfi.id, data, user?.id);
             toast.success('RFI updated');
             setEditRfi(null);
           } else {
-            addRfi(projectId, data, user?.id);
-            toast.success(`RFI created as ${data.status}`);
+            const rfi = await addRfi(projectId, data, user?.id);
+            if (rfi) toast.success(`RFI #${rfi.rfiNumber} created`);
+            else toast.error('Failed to create RFI — check console');
           }
         }}
       />
