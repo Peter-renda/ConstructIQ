@@ -20,3 +20,10 @@ alter table tasks add column if not exists attachments jsonb default '[]'::jsonb
 alter table submittals add column if not exists type text;
 alter table submittals add column if not exists assignee uuid;
 -- Note: the old "assigned_to" column is unused; assignee is what the form submits
+
+-- ─── PROFILES — APPROVAL / MASTER ADMIN ─────────────────────────────────────
+alter table profiles add column if not exists status text default 'pending';
+alter table profiles add column if not exists is_master_admin boolean default false;
+
+-- After running this migration, bootstrap your first master admin:
+-- UPDATE profiles SET is_master_admin = true, status = 'approved' WHERE email = 'you@example.com';

@@ -28,7 +28,7 @@ export function SignUpPage() {
     const { data, error } = await signUp(email, password, fullName, companyRole);
     if (error) { setError(error.message); setLoading(false); }
     else if (!data?.session) { setEmailSent(true); setLoading(false); }
-    else navigate('/home');
+    else navigate('/pending-approval');
   };
 
   return (

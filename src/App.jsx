@@ -5,6 +5,8 @@ import { DataProvider } from './contexts/DataContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { SignInPage } from './pages/auth/SignInPage';
 import { SignUpPage } from './pages/auth/SignUpPage';
+import { PendingApprovalPage } from './pages/auth/PendingApprovalPage';
+import { MasterAdminPage } from './pages/master-admin/MasterAdminPage';
 import { HomePage } from './pages/home/HomePage';
 import { ProjectLayout } from './pages/projects/ProjectLayout';
 import { ProjectHomePage } from './pages/projects/tools/ProjectHomePage';
@@ -17,22 +19,57 @@ import { RFIsPage } from './pages/projects/tools/RFIsPage';
 import { SubmittalsPage } from './pages/projects/tools/SubmittalsPage';
 import { StubPage } from './pages/projects/tools/StubPage';
 
+const LoadingScreen = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-muted-foreground text-sm">Loading...</div>
+  </div>
+);
+
+// Fully authenticated + approved users only
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-muted-foreground text-sm">Loading...</div>
-    </div>
-  );
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/sign-in" replace />;
+  // Wait for profile to load before deciding
+  if (user && !profile) return <LoadingScreen />;
+  if (!profile.is_master_admin && profile.status !== 'approved') {
+    return <Navigate to="/pending-approval" replace />;
+  }
   return children;
 }
 
-function AuthRedirect({ children }) {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  if (user) return <Navigate to="/home" replace />;
+// Master admin only
+function MasterAdminRoute({ children }) {
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/sign-in" replace />;
+  if (user && !profile) return <LoadingScreen />;
+  if (!profile.is_master_admin) return <Navigate to="/home" replace />;
   return children;
+}
+
+// Authenticated but not approved — show pending page; approved goes to /home
+function PendingRoute({ children }) {
+  const { user, profile, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/sign-in" replace />;
+  if (user && !profile) return <LoadingScreen />;
+  if (profile.is_master_admin || profile.status === 'approved') {
+    return <Navigate to="/home" replace />;
+  }
+  return children;
+}
+
+// Already signed-in users skip auth pages
+function AuthRedirect({ children }) {
+  const { user, profile, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return children;
+  if (!profile) return null;
+  if (profile.is_master_admin || profile.status === 'approved') {
+    return <Navigate to="/home" replace />;
+  }
+  return <Navigate to="/pending-approval" replace />;
 }
 
 function AppRoutes() {
@@ -40,6 +77,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/sign-in" element={<AuthRedirect><SignInPage /></AuthRedirect>} />
       <Route path="/sign-up" element={<AuthRedirect><SignUpPage /></AuthRedirect>} />
+      <Route path="/pending-approval" element={<PendingRoute><PendingApprovalPage /></PendingRoute>} />
+      <Route path="/master-admin" element={
+        <MasterAdminRoute>
+          <AppLayout><MasterAdminPage /></AppLayout>
+        </MasterAdminRoute>
+      } />
       <Route path="/home" element={
         <ProtectedRoute>
           <AppLayout><HomePage /></AppLayout>

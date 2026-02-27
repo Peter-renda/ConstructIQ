@@ -11,6 +11,8 @@ create table if not exists profiles (
   email text not null,
   full_name text,
   company_role text default 'user',
+  status text default 'pending',
+  is_master_admin boolean default false,
   created_at timestamptz default now()
 );
 

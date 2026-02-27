@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { Building2, LogOut, ChevronRight } from 'lucide-react';
+import { Building2, LogOut, ChevronRight, ShieldCheck } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
   DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
@@ -77,6 +77,18 @@ export function TopNav() {
               </span>
             </div>
           </DropdownMenuLabel>
+          {profile?.is_master_admin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => navigate('/master-admin')}
+                className="cursor-pointer gap-2"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Admin Portal
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleSignOut}
