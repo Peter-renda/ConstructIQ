@@ -20,12 +20,14 @@ create table if not exists profiles (
 create or replace function handle_new_user()
 returns trigger as $$
 begin
-  insert into profiles (id, email, full_name, company_role)
+  insert into profiles (id, email, full_name, company_role, status, is_master_admin)
   values (
     new.id,
     new.email,
     new.raw_user_meta_data->>'full_name',
-    coalesce(new.raw_user_meta_data->>'company_role', 'user')
+    coalesce(new.raw_user_meta_data->>'company_role', 'user'),
+    'pending',
+    false
   );
   return new;
 end;
