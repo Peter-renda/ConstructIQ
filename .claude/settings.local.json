@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(grep:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(cd /c/Users/p1sto/OneDrive/Documents/GitHub/ConstructIQ && git remote add origin https://github.com/Peter-renda/ConstructIQ.git && git branch -M main && git push -u origin main 2>&1)",
+      "Bash(npx vercel:*)",
+      "Bash(tail:*)",
+      "Bash(git:*)"
     ]
   }
 }
